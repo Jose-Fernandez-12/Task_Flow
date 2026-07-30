@@ -70,7 +70,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('El título es requerido')),
+        const SnackBar(content: Text('El título es requerido'), duration: Duration(seconds: 2)),
       );
       return;
     }

@@ -55,6 +55,7 @@ class DailyView extends StatelessWidget {
         content: const Text('Tarea eliminada'),
 
         behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
         action: SnackBarAction(
           label: 'Deshacer',
 

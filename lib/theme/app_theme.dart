@@ -141,8 +141,8 @@ class AppTheme {
         onError: Colors.white,
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: AppColors.light.surfaceWarm,
-        contentTextStyle: TextStyle(color: AppColors.light.fg),
+        backgroundColor: const Color(0xFF1A2822),
+        contentTextStyle: const TextStyle(color: Color(0xFFE8F5F0)),
         actionTextColor: AppColors.light.accent,
       ),
       iconTheme: IconThemeData(color: AppColors.light.fg2),
@@ -169,8 +169,8 @@ class AppTheme {
         onError: Colors.white,
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: AppColors.dark.surfaceWarm,
-        contentTextStyle: TextStyle(color: AppColors.dark.fg),
+        backgroundColor: const Color(0xFFE8F5F0),
+        contentTextStyle: const TextStyle(color: Color(0xFF0C1210)),
         actionTextColor: AppColors.dark.accent,
       ),
       iconTheme: IconThemeData(color: AppColors.dark.fg2),

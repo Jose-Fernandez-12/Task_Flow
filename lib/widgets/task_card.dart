@@ -59,36 +59,34 @@ class TaskCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           child: Opacity(
             opacity: isCompleted ? 0.55 : 1.0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: colors.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: isCompleted ? Colors.transparent : colors.borderSoft,
-                  width: 1,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: colors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isCompleted ? Colors.transparent : colors.borderSoft,
+                    width: 1,
+                  ),
                 ),
-              ),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  // Left Priority Border
-                  Positioned(
-                    left: -16,
-                    top: -14,
-                    bottom: -14,
-                    child: Container(
-                      width: 3,
-                      decoration: BoxDecoration(
-                        color: isCompleted ? Colors.transparent : priorityColor,
-                        borderRadius: const BorderRadius.only(
-                          topRight: Radius.circular(3),
-                          bottomRight: Radius.circular(3),
+                child: Stack(
+                  clipBehavior: Clip.antiAlias,
+                  children: [
+                    // Left Priority Border
+                    Positioned(
+                      left: -16,
+                      top: -14,
+                      bottom: -14,
+                      child: Container(
+                        width: 4,
+                        decoration: BoxDecoration(
+                          color: isCompleted ? Colors.transparent : priorityColor,
                         ),
                       ),
                     ),
-                  ),
-                  Row(
+                    Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Checkbox
@@ -180,8 +178,9 @@ class TaskCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildTag({IconData? icon, required String text, required Color color, required Color bgColor}) {
     return Container(
