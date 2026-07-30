@@ -51,9 +51,9 @@ class NotificationService {
     }
 
     // Request permission for iOS
-    final CupertinoFlutterLocalNotificationsPlugin? iosImplementation =
+    final DarwinFlutterLocalNotificationsPlugin? iosImplementation =
         _notificationsPlugin.resolvePlatformSpecificImplementation<
-            CupertinoFlutterLocalNotificationsPlugin>();
+            DarwinFlutterLocalNotificationsPlugin>();
     if (iosImplementation != null) {
       await iosImplementation.requestPermissions(
         alert: true,
