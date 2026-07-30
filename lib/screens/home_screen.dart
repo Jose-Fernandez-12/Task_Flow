@@ -108,7 +108,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               final count = provider.deleteCompleted();
                               if (count > 0) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text('\$count eliminada(s)')),
+                                  SnackBar(content: Text('$count eliminada(s)')),
                                 );
                               } else {
                                 ScaffoldMessenger.of(context).showSnackBar(

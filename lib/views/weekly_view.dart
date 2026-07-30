@@ -138,7 +138,7 @@ class WeeklyView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(9999),
                 ),
                 child: Text(
-                  '\$totalWeekTasks tareas',
+                  '$totalWeekTasks tareas',
                   style: TextStyle(fontSize: 12, color: colors.muted, fontFamily: 'Geist Mono'),
                 ),
               )
@@ -206,6 +206,6 @@ class WeeklyView extends StatelessWidget {
 
 extension WeeklyViewStringExtension on String {
   String capitalize() {
-    return "\${this[0].toUpperCase()}\${substring(1)}";
+    return "${this[0].toUpperCase()}${substring(1)}";
   }
 }

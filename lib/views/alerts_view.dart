@@ -65,10 +65,10 @@ class AlertsView extends StatelessWidget {
     final diff = DateTime.now().millisecondsSinceEpoch - ts;
     final min = (diff / 60000).floor();
     if (min < 1) return 'ahora';
-    if (min < 60) return 'hace \$min min';
+    if (min < 60) return 'hace $min min';
     final hrs = (min / 60).floor();
-    if (hrs < 24) return 'hace \${hrs}h';
-    return 'hace \${(hrs / 24).floor()}d';
+    if (hrs < 24) return 'hace ${hrs}h';
+    return 'hace ${(hrs / 24).floor()}d';
   }
 
   @override
@@ -123,7 +123,7 @@ class AlertsView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(9999),
                 ),
                 child: Text(
-                  '\${rec.length}',
+                  '${rec.length}',
                   style: TextStyle(fontSize: 12, color: colors.muted, fontFamily: 'Geist Mono'),
                 ),
               )
@@ -184,7 +184,7 @@ class AlertsView extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(9999),
                                 ),
                                 child: Text(
-                                  'Creado \${_timeAgo(t.createdAt)}',
+                                  'Creado ${_timeAgo(t.createdAt)}',
                                   style: TextStyle(fontSize: 11, color: colors.muted, fontFamily: 'Geist Mono'),
                                 ),
                               ),

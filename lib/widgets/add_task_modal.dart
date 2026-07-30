@@ -38,7 +38,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
       _selectedDate = widget.taskToEdit!.date;
     } else {
       final now = DateTime.now();
-      _selectedDate = "\${now.year}-\${now.month.toString().padLeft(2, '0')}-\${now.day.toString().padLeft(2, '0')}";
+      _selectedDate = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
     }
     
     _initCalendarMonth();
@@ -82,7 +82,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
     if (_selectedDate.isEmpty) return 'Sin fecha';
     try {
       final d = DateTime.parse(_selectedDate);
-      return "\${d.day} \${DateFormat('MMM', 'es_ES').format(d)}";
+      return "${d.day} ${DateFormat('MMM', 'es_ES').format(d)}";
     } catch (_) {
       return _selectedDate;
     }
@@ -96,7 +96,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
     
     final dayNames = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'];
     final now = DateTime.now();
-    final todayStr = "\${now.year}-\${now.month.toString().padLeft(2, '0')}-\${now.day.toString().padLeft(2, '0')}";
+    final todayStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
 
     return Container(
       margin: const EdgeInsets.only(top: 8),
@@ -157,7 +157,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
               if (dayIndex < 0) return const SizedBox.shrink();
 
               final day = dayIndex + 1;
-              final dateStr = "\${_calMonth.year}-\${_calMonth.month.toString().padLeft(2, '0')}-\${day.toString().padLeft(2, '0')}";
+              final dateStr = "${_calMonth.year}-${_calMonth.month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}";
               final isSelected = dateStr == _selectedDate;
               final isToday = dateStr == todayStr;
 

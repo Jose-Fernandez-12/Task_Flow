@@ -119,13 +119,13 @@ class TaskDetailModal extends StatelessWidget {
           const SizedBox(height: 12),
           _buildInfoRow(
             icon: Icons.flag,
-            text: "Prioridad: \${task.priority == TaskPriority.alta ? 'Alta' : task.priority == TaskPriority.media ? 'Media' : 'Baja'}",
+            text: "Prioridad: ${task.priority == TaskPriority.alta ? 'Alta' : task.priority == TaskPriority.media ? 'Media' : 'Baja'}",
             colors: colors,
           ),
           const SizedBox(height: 12),
           _buildInfoRow(
             icon: task.date.isEmpty ? Icons.notifications : Icons.calendar_today,
-            text: task.date.isEmpty ? 'Sin fecha — Recordatorio' : "\${_formatDate(task.date)} — \${_formatCategory(task.date)}",
+            text: task.date.isEmpty ? 'Sin fecha — Recordatorio' : "${_formatDate(task.date)} — ${_formatCategory(task.date)}",
             colors: colors,
           ),
           const SizedBox(height: 12),

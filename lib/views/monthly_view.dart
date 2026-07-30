@@ -117,7 +117,7 @@ class _MonthlyViewState extends State<MonthlyView> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "\${DateFormat('MMMM', 'es_ES').format(displayMonth).capitalize()} \${displayMonth.year}",
+              "${DateFormat('MMMM', 'es_ES').format(displayMonth).capitalize()} ${displayMonth.year}",
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.fg2),
             ),
             Container(
@@ -127,7 +127,7 @@ class _MonthlyViewState extends State<MonthlyView> {
                 borderRadius: BorderRadius.circular(9999),
               ),
               child: Text(
-                '\${monthTasks.length} tareas',
+                '${monthTasks.length} tareas',
                 style: TextStyle(fontSize: 12, color: colors.muted, fontFamily: 'Geist Mono'),
               ),
             )
@@ -142,7 +142,7 @@ class _MonthlyViewState extends State<MonthlyView> {
               setState(() => _monthOffset--);
             }),
             Text(
-              "\${DateFormat('MMMM', 'es_ES').format(displayMonth).capitalize()} \${displayMonth.year}",
+              "${DateFormat('MMMM', 'es_ES').format(displayMonth).capitalize()} ${displayMonth.year}",
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.fg),
             ),
             _buildNavButton(Icons.chevron_right, colors, () {
@@ -177,10 +177,10 @@ class _MonthlyViewState extends State<MonthlyView> {
             }
 
             final day = dayIndex + 1;
-            final dateStr = "\${displayMonth.year}-\${displayMonth.month.toString().padLeft(2, '0')}-\${day.toString().padLeft(2, '0')}";
+            final dateStr = "${displayMonth.year}-${displayMonth.month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}";
             
             final dt = groupedTasks[dateStr] ?? [];
-            final isToday = dateStr == "\${now.year}-\${now.month.toString().padLeft(2, '0')}-\${now.day.toString().padLeft(2, '0')}";
+            final isToday = dateStr == "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
 
             return Container(
               decoration: BoxDecoration(
