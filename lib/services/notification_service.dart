@@ -49,18 +49,6 @@ class NotificationService {
     if (androidImplementation != null) {
       await androidImplementation.requestNotificationsPermission();
     }
-
-    // Request permission for iOS
-    final DarwinFlutterLocalNotificationsPlugin? iosImplementation =
-        _notificationsPlugin.resolvePlatformSpecificImplementation<
-            DarwinFlutterLocalNotificationsPlugin>();
-    if (iosImplementation != null) {
-      await iosImplementation.requestPermissions(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-    }
   }
 
   // Helper to schedule a daily notification at a specific time
