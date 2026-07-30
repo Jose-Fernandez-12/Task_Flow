@@ -204,7 +204,7 @@ class WeeklyView extends StatelessWidget {
   }
 }
 
-extension StringExtension on String {
+extension WeeklyViewStringExtension on String {
   String capitalize() {
     return "\${this[0].toUpperCase()}\${substring(1)}";
   }
