@@ -1,7 +1,6 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:flutter_timezone/flutter_timezone.dart';
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
@@ -10,13 +9,9 @@ class NotificationService {
   static Future<void> init() async {
     // 1. Initialize timezone
     tz.initializeTimeZones();
-    try {
-      final String timeZoneName = await FlutterTimezone.getLocalTimezone();
-      tz.setLocalLocation(tz.getLocation(timeZoneName));
-    } catch (_) {
-      // Fallback if fails
-      tz.setLocalLocation(tz.getLocation('America/New_York'));
-    }
+    // We use UTC for local notifications plugin, and convert native local DateTime to UTC
+    // to bypass the requirement of having a native timezone detector package.
+    tz.setLocalLocation(tz.UTC);
 
     // 2. Android Initialization Settings
     // Using ic_launcher as the default notification icon
@@ -72,20 +67,23 @@ class NotificationService {
       iOS: DarwinNotificationDetails(),
     );
 
-    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    tz.TZDateTime scheduledDate = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
+    // Get current local time using Dart native DateTime
+    final nowLocal = DateTime.now();
+    var targetLocal = DateTime(
+      nowLocal.year,
+      nowLocal.month,
+      nowLocal.day,
       hour,
       minute,
     );
 
     // If scheduled time is in the past, schedule for tomorrow
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    if (targetLocal.isBefore(nowLocal)) {
+      targetLocal = targetLocal.add(const Duration(days: 1));
     }
+
+    // Convert local DateTime to UTC tz.TZDateTime
+    final scheduledDate = tz.TZDateTime.from(targetLocal, tz.UTC);
 
     await _notificationsPlugin.zonedSchedule(
       id,
