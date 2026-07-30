@@ -72,7 +72,7 @@ class TaskCard extends StatelessWidget {
                   ),
                 ),
                 child: Stack(
-                  clipBehavior: Clip.antiAlias,
+                  clipBehavior: Clip.none,
                   children: [
                     // Left Priority Border
                     Positioned(

@@ -37,8 +37,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
     if (widget.taskToEdit != null) {
       _selectedDate = widget.taskToEdit!.date;
     } else {
-      final now = DateTime.now();
-      _selectedDate = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+      _selectedDate = "";
     }
     
     _initCalendarMonth();
