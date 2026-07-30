@@ -140,6 +140,11 @@ class AppTheme {
         error: AppColors.light.danger,
         onError: Colors.white,
       ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: AppColors.light.surfaceWarm,
+        contentTextStyle: TextStyle(color: AppColors.light.fg),
+        actionTextColor: AppColors.light.accent,
+      ),
       iconTheme: IconThemeData(color: AppColors.light.fg2),
     );
   }
@@ -162,6 +167,11 @@ class AppTheme {
         onSurface: AppColors.dark.fg,
         error: AppColors.dark.danger,
         onError: Colors.white,
+      ),
+      snackBarTheme: SnackBarThemeData(
+        backgroundColor: AppColors.dark.surfaceWarm,
+        contentTextStyle: TextStyle(color: AppColors.dark.fg),
+        actionTextColor: AppColors.dark.accent,
       ),
       iconTheme: IconThemeData(color: AppColors.dark.fg2),
     );

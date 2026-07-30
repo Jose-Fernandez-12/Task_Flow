@@ -50,11 +50,11 @@ class AlertsView extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Tarea eliminada'),
-        backgroundColor: Theme.of(context).extension<AppColors>()!.surfaceWarm,
+
         behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
           label: 'Deshacer',
-          textColor: Theme.of(context).extension<AppColors>()!.accent,
+
           onPressed: () => provider.undoDelete(),
         ),
       ),

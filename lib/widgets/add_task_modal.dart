@@ -266,6 +266,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
                       _buildLabel('Fecha', colors),
                       GestureDetector(
                         onTap: () {
+                          FocusScope.of(context).unfocus();
                           setState(() {
                             _showingCalendar = !_showingCalendar;
                             if (_showingCalendar) _initCalendarMonth();
@@ -299,25 +300,36 @@ class _AddTaskModalState extends State<AddTaskModal> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildLabel('Prioridad', colors),
-                      Row(
+                      Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
                         children: [
                           PriorityChip(
                             label: 'Alta',
                             value: TaskPriority.alta,
                             isSelected: _selectedPriority == TaskPriority.alta,
-                            onTap: () => setState(() => _selectedPriority = TaskPriority.alta),
+                            onTap: () {
+                              FocusScope.of(context).unfocus();
+                              setState(() => _selectedPriority = TaskPriority.alta);
+                            },
                           ),
                           PriorityChip(
                             label: 'Media',
                             value: TaskPriority.media,
                             isSelected: _selectedPriority == TaskPriority.media,
-                            onTap: () => setState(() => _selectedPriority = TaskPriority.media),
+                            onTap: () {
+                              FocusScope.of(context).unfocus();
+                              setState(() => _selectedPriority = TaskPriority.media);
+                            },
                           ),
                           PriorityChip(
                             label: 'Baja',
                             value: TaskPriority.baja,
                             isSelected: _selectedPriority == TaskPriority.baja,
-                            onTap: () => setState(() => _selectedPriority = TaskPriority.baja),
+                            onTap: () {
+                              FocusScope.of(context).unfocus();
+                              setState(() => _selectedPriority = TaskPriority.baja);
+                            },
                           ),
                         ],
                       )
