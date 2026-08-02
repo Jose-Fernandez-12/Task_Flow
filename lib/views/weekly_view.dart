@@ -84,7 +84,7 @@ class WeeklyView extends StatelessWidget {
     int totalWeekTasks = 0;
 
     for (var t in provider.tasks) {
-      if (t.date.isEmpty || t.isReminder) continue;
+      if (t.date.isEmpty || t.type == TaskType.recordatorio) continue;
       try {
         final d = DateTime.parse(t.date);
         final dateOnly = DateTime(d.year, d.month, d.day);

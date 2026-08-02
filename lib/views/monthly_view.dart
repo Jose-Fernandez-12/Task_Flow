@@ -91,7 +91,7 @@ class _MonthlyViewState extends State<MonthlyView> {
     // Filter tasks for this month
     List<Task> monthTasks = [];
     for (var t in provider.tasks) {
-      if (t.date.isEmpty || t.isReminder) continue;
+      if (t.date.isEmpty || t.type == TaskType.recordatorio) continue;
       try {
         final d = DateTime.parse(t.date);
         if (d.year == displayMonth.year && d.month == displayMonth.month) {

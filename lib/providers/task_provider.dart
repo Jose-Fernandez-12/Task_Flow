@@ -48,55 +48,6 @@ class TaskProvider with ChangeNotifier {
     _isDarkMode = !_isDarkMode;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('tf_dark', _isDarkMode);
-import 'dart:convert';
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../models/task.dart';
-
-class TaskProvider with ChangeNotifier {
-  List<Task> _tasks = [];
-  bool _isDarkMode = false;
-  Task? _lastDeleted;
-
-  List<Task> get tasks => _tasks;
-  bool get isDarkMode => _isDarkMode;
-
-  TaskProvider() {
-    _loadData();
-  }
-
-  Future<void> _loadData() async {
-    final prefs = await SharedPreferences.getInstance();
-    
-    // Load Theme
-    _isDarkMode = prefs.getBool('tf_dark') ?? false;
-
-    // Load Tasks
-    final tasksJson = prefs.getString('tf_tasks_v2');
-    if (tasksJson != null) {
-      try {
-        final List<dynamic> decoded = jsonDecode(tasksJson);
-        _tasks = decoded.map((e) => Task.fromJson(e)).toList();
-      } catch (e) {
-        _tasks = _getSampleData();
-      }
-    } else {
-      _tasks = _getSampleData();
-    }
-    notifyListeners();
-  }
-
-  Future<void> _saveTasks() async {
-    final prefs = await SharedPreferences.getInstance();
-    final String encoded = jsonEncode(_tasks.map((e) => e.toJson()).toList());
-    await prefs.setString('tf_tasks_v2', encoded);
-    notifyListeners();
-  }
-
-  Future<void> toggleTheme() async {
-    _isDarkMode = !_isDarkMode;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('tf_dark', _isDarkMode);
     notifyListeners();
   }
 
