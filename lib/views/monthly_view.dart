@@ -230,6 +230,7 @@ class _MonthlyViewState extends State<MonthlyView> {
                     )
                 ],
               ),
+              ),
             );
           },
         ),
