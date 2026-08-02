@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
+import '../models/task.dart';
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notificationsPlugin =
@@ -117,5 +119,69 @@ class NotificationService {
       hour: 12,
       minute: 0,
     );
+  }
+
+  static Future<void> scheduleMeetingReminders(Task meeting) async {
+    if (meeting.type != TaskType.reunion || meeting.date.isEmpty || meeting.time == null || meeting.time!.isEmpty) return;
+
+    try {
+      final parts = meeting.time!.split(':');
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+      final d = DateTime.parse(meeting.date);
+
+      final meetingTimeLocal = DateTime(d.year, d.month, d.day, hour, minute);
+      final nowLocal = DateTime.now();
+
+      // IDs should be stable per meeting
+      final idBase = meeting.id.hashCode.abs();
+      final id30 = idBase % 100000;
+      final id10 = (idBase + 1) % 100000;
+
+      // Cancel previous if any
+      await _notificationsPlugin.cancel(id30);
+      await _notificationsPlugin.cancel(id10);
+
+      const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+        'meeting_reminders_channel',
+        'Recordatorios de Reuniones',
+        channelDescription: 'Recordatorios antes de las reuniones',
+        importance: Importance.max,
+        priority: Priority.high,
+      );
+
+      const NotificationDetails notificationDetails = NotificationDetails(
+        android: androidDetails,
+        iOS: DarwinNotificationDetails(),
+      );
+
+      final time30 = meetingTimeLocal.subtract(const Duration(minutes: 30));
+      if (time30.isAfter(nowLocal)) {
+        await _notificationsPlugin.zonedSchedule(
+          id30,
+          'Reunión en 30 minutos',
+          meeting.title,
+          tz.TZDateTime.from(time30, tz.UTC),
+          notificationDetails,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+        );
+      }
+
+      final time10 = meetingTimeLocal.subtract(const Duration(minutes: 10));
+      if (time10.isAfter(nowLocal)) {
+        await _notificationsPlugin.zonedSchedule(
+          id10,
+          'Reunión en 10 minutos',
+          meeting.title,
+          tz.TZDateTime.from(time10, tz.UTC),
+          notificationDetails,
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+        );
+      }
+    } catch (e) {
+      debugPrint('Error scheduling meeting reminder: $e');
+    }
   }
 }

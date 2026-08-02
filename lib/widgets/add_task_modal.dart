@@ -6,7 +6,7 @@ import 'priority_chip.dart';
 
 class AddTaskModal extends StatefulWidget {
   final Task? taskToEdit;
-  final Function(String title, String desc, String date, TaskPriority priority, bool isReminder) onSave;
+  final Function(String title, String desc, String date, TaskPriority priority, TaskType type, String? time) onSave;
 
   const AddTaskModal({
     Key? key,
@@ -23,7 +23,8 @@ class _AddTaskModalState extends State<AddTaskModal> {
   late TextEditingController _descController;
   late TaskPriority _selectedPriority;
   String _selectedDate = '';
-  bool _isReminder = false;
+  TaskType _selectedType = TaskType.tarea;
+  String? _selectedTime;
   
   bool _showingCalendar = false;
   late DateTime _calMonth;
@@ -34,7 +35,8 @@ class _AddTaskModalState extends State<AddTaskModal> {
     _titleController = TextEditingController(text: widget.taskToEdit?.title ?? '');
     _descController = TextEditingController(text: widget.taskToEdit?.desc ?? '');
     _selectedPriority = widget.taskToEdit?.priority ?? TaskPriority.media;
-    _isReminder = widget.taskToEdit?.isReminder ?? false;
+    _selectedType = widget.taskToEdit?.type ?? TaskType.tarea;
+    _selectedTime = widget.taskToEdit?.time;
     
     if (widget.taskToEdit != null) {
       _selectedDate = widget.taskToEdit!.date;
@@ -75,7 +77,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
       );
       return;
     }
-    widget.onSave(title, _descController.text.trim(), _selectedDate, _selectedPriority, _isReminder);
+    widget.onSave(title, _descController.text.trim(), _selectedDate, _selectedPriority, _selectedType, _selectedTime);
     Navigator.pop(context);
   }
 
@@ -237,8 +239,18 @@ class _AddTaskModalState extends State<AddTaskModal> {
               ),
             ),
             Text(
-              isEditing ? 'Editar tarea' : 'Nueva tarea',
+              isEditing ? 'Editar' : 'Nuevo',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: colors.fg),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                _buildTypeChip('Tarea', TaskType.tarea, colors),
+                const SizedBox(width: 8),
+                _buildTypeChip('Recordatorio', TaskType.recordatorio, colors),
+                const SizedBox(width: 8),
+                _buildTypeChip('Reunión', TaskType.reunion, colors),
+              ],
             ),
             const SizedBox(height: 20),
             _buildLabel('Título', colors),
@@ -288,26 +300,39 @@ class _AddTaskModalState extends State<AddTaskModal> {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          SizedBox(
-                            height: 24,
-                            width: 24,
-                            child: Checkbox(
-                              value: _isReminder,
-                              activeColor: colors.accent,
-                              onChanged: (val) {
-                                setState(() => _isReminder = val ?? false);
-                              },
+                      if (_selectedType == TaskType.reunion) ...[
+                        const SizedBox(height: 16),
+                        _buildLabel('Hora (Requerido)', colors),
+                        GestureDetector(
+                          onTap: () async {
+                            FocusScope.of(context).unfocus();
+                            final time = await showTimePicker(
+                              context: context,
+                              initialTime: _selectedTime != null 
+                                  ? TimeOfDay(hour: int.parse(_selectedTime!.split(':')[0]), minute: int.parse(_selectedTime!.split(':')[1]))
+                                  : TimeOfDay.now(),
+                            );
+                            if (time != null) {
+                              setState(() {
+                                _selectedTime = "${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}";
+                              });
+                            }
+                          },
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: colors.bg,
+                              border: Border.all(color: colors.borderSoft),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              _selectedTime ?? 'Seleccionar hora',
+                              style: TextStyle(fontSize: 14, color: colors.fg),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Es un recordatorio',
-                            style: TextStyle(fontSize: 12, color: colors.fg2),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -429,6 +454,31 @@ class _AddTaskModalState extends State<AddTaskModal> {
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide(color: colors.accent, width: 2),
+      ),
+    );
+  }
+
+  Widget _buildTypeChip(String label, TaskType type, AppColors colors) {
+    final isSelected = _selectedType == type;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedType = type),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: isSelected ? colors.accent : colors.surfaceWarm,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: isSelected ? colors.accentOn : colors.fg2,
+            ),
+          ),
+        ),
       ),
     );
   }
