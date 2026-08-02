@@ -197,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Icons.notifications,
                               colors,
                               context,
-                              badgeCount: provider.recordatorios.length,
+                              badgeCount: provider.recordatoriosPendientes.length,
                             ),
                           ],
                         ),

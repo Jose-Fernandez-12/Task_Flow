@@ -126,7 +126,7 @@ class AlertsView extends StatelessWidget {
                   borderRadius: BorderRadius.circular(9999),
                 ),
                 child: Text(
-                  '${rec.length}',
+                  '${provider.recordatoriosPendientes.length}',
                   style: TextStyle(fontSize: 12, color: colors.muted, fontFamily: 'Geist Mono'),
                 ),
               )
@@ -178,7 +178,10 @@ class AlertsView extends StatelessWidget {
                             ),
                           ],
                           const SizedBox(height: 8),
-                          Row(
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
                             children: [
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -191,7 +194,6 @@ class AlertsView extends StatelessWidget {
                                   style: TextStyle(fontSize: 11, color: colors.muted, fontFamily: 'Geist Mono'),
                                 ),
                               ),
-                              const SizedBox(width: 8),
                               GestureDetector(
                                 onTap: () {
                                   provider.toggleDone(t.id);

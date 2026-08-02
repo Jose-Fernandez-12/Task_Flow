@@ -127,6 +127,7 @@ class TaskProvider with ChangeNotifier {
 
   // Helpers to get specific groups of tasks
   List<Task> get recordatorios => _tasks.where((t) => t.type == TaskType.recordatorio).toList();
+  List<Task> get recordatoriosPendientes => recordatorios.where((t) => !t.done).toList();
 
   List<Task> get pendingToday {
     final now = DateTime.now();
