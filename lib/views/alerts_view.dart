@@ -52,12 +52,10 @@ class AlertsView extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Tarea eliminada'),
-
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
         action: SnackBarAction(
           label: 'Deshacer',
-
           onPressed: () => provider.undoDelete(),
         ),
       ),
@@ -79,6 +77,8 @@ class AlertsView extends StatelessWidget {
     final colors = Theme.of(context).extension<AppColors>()!;
     final provider = Provider.of<TaskProvider>(context);
     final rec = provider.recordatorios;
+    final pending = provider.recordatoriosPendientes;
+    final completed = rec.where((t) => t.done).toList();
 
     if (rec.isEmpty) {
       return Center(
@@ -110,90 +110,149 @@ class AlertsView extends StatelessWidget {
       );
     }
 
-    return ListView(
-      padding: const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 100),
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(top: 10, bottom: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    if (pending.isEmpty && completed.isNotEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Recordatorios', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.fg2)),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                width: 64,
+                height: 64,
                 decoration: BoxDecoration(
                   color: colors.surfaceWarm,
-                  borderRadius: BorderRadius.circular(9999),
+                  shape: BoxShape.circle,
                 ),
-                child: Text(
-                  '${provider.recordatoriosPendientes.length}',
-                  style: TextStyle(fontSize: 12, color: colors.muted, fontFamily: 'Geist Mono'),
-                ),
-              )
+                child: Icon(Icons.check_circle, size: 28, color: colors.accent),
+              ),
+              const SizedBox(height: 16),
+              Text('¡Todo listo!', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.fg2)),
+              const SizedBox(height: 4),
+              Text(
+                'No tienes recordatorios pendientes.',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: colors.muted, height: 1.4),
+              ),
+              const SizedBox(height: 32),
+              _buildSectionHeader('Completadas', completed.length, colors),
+              ...completed.take(5).map((t) => _buildAlertCard(context, t, provider, colors)),
             ],
           ),
         ),
-        ...rec.map((t) => Container(
-          margin: const EdgeInsets.only(bottom: 8.0),
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: () => _showDetailModal(context, t, provider),
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(
-                  color: colors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: colors.borderSoft),
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 38,
-                      height: 38,
-                      margin: const EdgeInsets.only(right: 14),
-                      decoration: BoxDecoration(
-                        color: colors.accent.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Icon(Icons.notifications, size: 20, color: colors.accent),
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 100),
+      children: [
+        if (pending.isNotEmpty) ...[
+          _buildSectionHeader('Recordatorios', pending.length, colors),
+          ...pending.map((t) => _buildAlertCard(context, t, provider, colors)),
+        ],
+        if (completed.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          _buildSectionHeader('Completadas', completed.length, colors),
+          ...completed.map((t) => _buildAlertCard(context, t, provider, colors)),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildSectionHeader(String title, int count, AppColors colors) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10, bottom: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: colors.fg2)),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+            decoration: BoxDecoration(
+              color: colors.surfaceWarm,
+              borderRadius: BorderRadius.circular(9999),
+            ),
+            child: Text(
+              count.toString(),
+              style: TextStyle(fontSize: 12, color: colors.muted, fontFamily: 'Geist Mono'),
+            ),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAlertCard(BuildContext context, Task t, TaskProvider provider, AppColors colors) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8.0),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () => _showDetailModal(context, t, provider),
+          borderRadius: BorderRadius.circular(16),
+          child: Opacity(
+            opacity: t.done ? 0.6 : 1.0,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: colors.borderSoft),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    margin: const EdgeInsets.only(right: 14),
+                    decoration: BoxDecoration(
+                      color: t.done ? colors.accent : colors.accent.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            t.title,
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: colors.fg, height: 1.3),
+                    child: Icon(t.done ? Icons.check : Icons.notifications, size: 20, color: t.done ? colors.accentOn : colors.accent),
+                  ),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          t.title,
+                          style: TextStyle(
+                            fontSize: 14, 
+                            fontWeight: FontWeight.w500, 
+                            color: colors.fg, 
+                            height: 1.3,
+                            decoration: t.done ? TextDecoration.lineThrough : null,
                           ),
-                          if (t.desc.isNotEmpty) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              t.desc,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 13, color: colors.muted, height: 1.4),
-                            ),
-                          ],
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 4,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.04),
-                                  borderRadius: BorderRadius.circular(9999),
-                                ),
-                                child: Text(
-                                  'Creado ${_timeAgo(t.createdAt)}',
-                                  style: TextStyle(fontSize: 11, color: colors.muted, fontFamily: 'Geist Mono'),
-                                ),
+                        ),
+                        if (t.desc.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            t.desc,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(fontSize: 13, color: colors.muted, height: 1.4),
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.04),
+                                borderRadius: BorderRadius.circular(9999),
                               ),
+                              child: Text(
+                                'Creado ${_timeAgo(t.createdAt)}',
+                                style: TextStyle(fontSize: 11, color: colors.muted, fontFamily: 'Geist Mono'),
+                              ),
+                            ),
+                            if (!t.done)
                               GestureDetector(
                                 onTap: () {
                                   provider.toggleDone(t.id);
@@ -201,24 +260,24 @@ class AlertsView extends StatelessWidget {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: t.done ? colors.accent.withOpacity(0.1) : colors.danger.withOpacity(0.1),
+                                    color: colors.accent.withOpacity(0.1),
                                     borderRadius: BorderRadius.circular(9999),
-                                    border: Border.all(color: t.done ? colors.accent.withOpacity(0.2) : colors.danger.withOpacity(0.2)),
+                                    border: Border.all(color: colors.accent.withOpacity(0.2)),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Icon(
-                                        t.done ? Icons.check_circle : Icons.radio_button_unchecked,
+                                        Icons.radio_button_unchecked,
                                         size: 14,
-                                        color: t.done ? colors.accent : colors.danger,
+                                        color: colors.accent,
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
-                                        t.done ? 'Completado' : 'Marcar hecho',
+                                        'Marcar hecho',
                                         style: TextStyle(
                                           fontSize: 11,
-                                          color: t.done ? colors.accent : colors.danger,
+                                          color: colors.accent,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -226,30 +285,29 @@ class AlertsView extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                            ],
-                          )
-                        ],
-                      ),
+                          ],
+                        )
+                      ],
                     ),
-                    IconButton(
-                      onPressed: () {
-                        provider.deleteTask(t.id);
-                        _showDeleteSnackbar(context, provider);
-                      },
-                      icon: const Icon(Icons.close),
-                      color: colors.muted,
-                      iconSize: 20,
-                      constraints: const BoxConstraints(),
-                      padding: const EdgeInsets.all(4),
-                      splashRadius: 20,
-                    )
-                  ],
-                ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      provider.deleteTask(t.id);
+                      _showDeleteSnackbar(context, provider);
+                    },
+                    icon: Icon(t.done ? Icons.delete_outline : Icons.close),
+                    color: colors.muted,
+                    iconSize: 20,
+                    constraints: const BoxConstraints(),
+                    padding: const EdgeInsets.all(4),
+                    splashRadius: 20,
+                  )
+                ],
               ),
             ),
           ),
-        ))
-      ],
+        ),
+      ),
     );
   }
 }
