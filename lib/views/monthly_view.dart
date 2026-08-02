@@ -18,6 +18,7 @@ class MonthlyView extends StatefulWidget {
 
 class _MonthlyViewState extends State<MonthlyView> {
   int _monthOffset = 0;
+  String? _selectedDateStr;
 
   void _showDetailModal(BuildContext context, Task task, TaskProvider provider) {
     showModalBottomSheet(
@@ -42,14 +43,15 @@ class _MonthlyViewState extends State<MonthlyView> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => AddTaskModal(
         taskToEdit: task,
-        onSave: (title, desc, date, priority, isReminder) {
+        onSave: (title, desc, date, priority, type, time) {
           provider.addOrUpdateTask(
             id: task.id,
             title: title,
             desc: desc,
             date: date,
             priority: priority,
-            isReminder: isReminder,
+            type: type,
+            time: time,
           );
         },
       ),
@@ -111,6 +113,10 @@ class _MonthlyViewState extends State<MonthlyView> {
 
     // Sort grouped keys
     final sortedKeys = groupedTasks.keys.toList()..sort();
+    
+    List<String> keysToDisplay = _selectedDateStr != null 
+        ? (groupedTasks.containsKey(_selectedDateStr) ? [_selectedDateStr!] : [])
+        : sortedKeys;
 
     return ListView(
       padding: const EdgeInsets.only(top: 16, left: 16, right: 16, bottom: 100),
@@ -184,29 +190,41 @@ class _MonthlyViewState extends State<MonthlyView> {
             final dt = groupedTasks[dateStr] ?? [];
             final isToday = dateStr == "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
 
-            return Container(
-              decoration: BoxDecoration(
-                color: isToday ? colors.accent : Colors.transparent,
-                borderRadius: BorderRadius.circular(10),
-              ),
+            final isSelected = _selectedDateStr == dateStr;
+
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  if (_selectedDateStr == dateStr) {
+                    _selectedDateStr = null;
+                  } else {
+                    _selectedDateStr = dateStr;
+                  }
+                });
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: isSelected ? colors.accent : (isToday ? colors.accent.withOpacity(0.2) : Colors.transparent),
+                  borderRadius: BorderRadius.circular(10),
+                ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    day.toString(),
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: isToday ? FontWeight.w600 : FontWeight.w500,
-                      color: isToday ? colors.accentOn : colors.fg2,
+                    Text(
+                      day.toString(),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: isSelected || isToday ? FontWeight.w600 : FontWeight.w500,
+                        color: isSelected ? colors.accentOn : colors.fg2,
+                      ),
                     ),
-                  ),
                   if (dt.isNotEmpty)
                     Container(
                       margin: const EdgeInsets.only(top: 2),
                       width: dt.length > 1 ? 12 : 4,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: isToday ? colors.accentOn : colors.accent,
+                        color: isSelected ? colors.accentOn : colors.accent,
                         borderRadius: BorderRadius.circular(dt.length > 1 ? 2 : 2), // small pill if multiple
                       ),
                     )
@@ -216,7 +234,7 @@ class _MonthlyViewState extends State<MonthlyView> {
           },
         ),
         const SizedBox(height: 16),
-        if (monthTasks.isEmpty)
+        if (keysToDisplay.isEmpty)
           Center(
             child: Padding(
               padding: const EdgeInsets.all(24.0),
@@ -229,7 +247,7 @@ class _MonthlyViewState extends State<MonthlyView> {
                     child: Icon(Icons.calendar_month, size: 28, color: colors.accent),
                   ),
                   const SizedBox(height: 16),
-                  Text('Sin tareas este mes', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.fg2)),
+                  Text(_selectedDateStr != null ? 'Sin tareas en este día' : 'Sin tareas este mes', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: colors.fg2)),
                   const SizedBox(height: 4),
                   Text('Las tareas con fecha aparecerán aquí', style: TextStyle(fontSize: 13, color: colors.muted)),
                 ],
@@ -237,7 +255,7 @@ class _MonthlyViewState extends State<MonthlyView> {
             ),
           )
         else
-          ...sortedKeys.map((dk) {
+          ...keysToDisplay.map((dk) {
             final date = DateTime.parse(dk);
             final dayTasks = groupedTasks[dk]!;
             final isToday = date == today;

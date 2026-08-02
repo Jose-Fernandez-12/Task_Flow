@@ -6,6 +6,12 @@ enum TaskPriority {
   baja,
 }
 
+enum TaskType {
+  tarea,
+  recordatorio,
+  reunion,
+}
+
 class Task {
   final String id;
   String title;
@@ -13,7 +19,8 @@ class Task {
   String date; // "YYYY-MM-DD" o vacio
   TaskPriority priority;
   bool done;
-  bool isReminder;
+  TaskType type;
+  String? time; // "HH:MM" para reuniones
   final int createdAt; // Timestamp in milliseconds
 
   Task({
@@ -23,7 +30,8 @@ class Task {
     this.date = '',
     this.priority = TaskPriority.media,
     this.done = false,
-    this.isReminder = false,
+    this.type = TaskType.tarea,
+    this.time,
     required this.createdAt,
   });
 
@@ -32,6 +40,15 @@ class Task {
     if (json['priority'] == 'alta') parsedPriority = TaskPriority.alta;
     if (json['priority'] == 'baja') parsedPriority = TaskPriority.baja;
 
+    TaskType parsedType = TaskType.tarea;
+    if (json['type'] != null) {
+      if (json['type'] == 'recordatorio') parsedType = TaskType.recordatorio;
+      if (json['type'] == 'reunion') parsedType = TaskType.reunion;
+    } else {
+      bool isRem = json['isReminder'] as bool? ?? ((json['date'] as String? ?? '') == '');
+      if (isRem) parsedType = TaskType.recordatorio;
+    }
+
     return Task(
       id: json['id'] as String,
       title: json['title'] as String,
@@ -39,7 +56,8 @@ class Task {
       date: json['date'] as String? ?? '',
       priority: parsedPriority,
       done: json['done'] as bool? ?? false,
-      isReminder: json['isReminder'] as bool? ?? ((json['date'] as String? ?? '') == ''),
+      type: parsedType,
+      time: json['time'] as String?,
       createdAt: json['createdAt'] as int? ?? DateTime.now().millisecondsSinceEpoch,
     );
   }
@@ -52,7 +70,8 @@ class Task {
       'date': date,
       'priority': priority.name, // Enum to string ("alta", "media", "baja")
       'done': done,
-      'isReminder': isReminder,
+      'type': type.name, // Enum to string ("tarea", "recordatorio", "reunion")
+      'time': time,
       'createdAt': createdAt,
     };
   }

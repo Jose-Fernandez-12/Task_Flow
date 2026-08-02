@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/task.dart';
+import '../services/notification_service.dart';
 
 class TaskProvider with ChangeNotifier {
   List<Task> _tasks = [];
@@ -105,7 +106,8 @@ class TaskProvider with ChangeNotifier {
     String desc = '',
     String date = '',
     TaskPriority priority = TaskPriority.media,
-    bool isReminder = false,
+    TaskType type = TaskType.tarea,
+    String? time,
   }) {
     if (id != null) {
       // Edit
@@ -115,7 +117,8 @@ class TaskProvider with ChangeNotifier {
         _tasks[index].desc = desc;
         _tasks[index].date = date;
         _tasks[index].priority = priority;
-        _tasks[index].isReminder = isReminder;
+        _tasks[index].type = type;
+        _tasks[index].time = time;
       }
     } else {
       // Add
@@ -125,12 +128,18 @@ class TaskProvider with ChangeNotifier {
         desc: desc,
         date: date,
         priority: priority,
-        isReminder: isReminder,
+        type: type,
+        time: time,
         createdAt: DateTime.now().millisecondsSinceEpoch,
       );
       _tasks.insert(0, newTask);
     }
     _saveTasks();
+    
+    if (type == TaskType.reunion) {
+      final taskToSchedule = id != null ? _tasks.firstWhere((t) => t.id == id) : _tasks.first;
+      NotificationService.scheduleMeetingReminders(taskToSchedule);
+    }
   }
 
   void toggleDone(String id) {
@@ -166,12 +175,12 @@ class TaskProvider with ChangeNotifier {
   }
 
   // Helpers to get specific groups of tasks
-  List<Task> get recordatorios => _tasks.where((t) => t.isReminder).toList();
+  List<Task> get recordatorios => _tasks.where((t) => t.type == TaskType.recordatorio).toList();
 
   List<Task> get pendingToday {
     final now = DateTime.now();
     final todayStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
-    return _tasks.where((t) => t.date == todayStr && !t.done && !t.isReminder).toList();
+    return _tasks.where((t) => t.date == todayStr && !t.done && t.type != TaskType.recordatorio).toList();
   }
 
   List<Task> _getSampleData() {

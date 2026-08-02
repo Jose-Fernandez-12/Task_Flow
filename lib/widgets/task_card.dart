@@ -145,8 +145,8 @@ class TaskCard extends StatelessWidget {
                               runSpacing: 4,
                               children: [
                                 _buildTag(
-                                  icon: task.date.isEmpty ? Icons.notifications : Icons.today,
-                                  text: _formatDate(task.date),
+                                  icon: task.type == TaskType.reunion ? Icons.videocam : (task.date.isEmpty ? Icons.notifications : Icons.today),
+                                  text: task.type == TaskType.reunion && task.time != null ? '${_formatDate(task.date)} ${task.time}' : _formatDate(task.date),
                                   color: colors.muted,
                                   bgColor: Colors.black.withOpacity(0.04),
                                 ),
