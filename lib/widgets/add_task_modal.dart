@@ -6,7 +6,7 @@ import 'priority_chip.dart';
 
 class AddTaskModal extends StatefulWidget {
   final Task? taskToEdit;
-  final Function(String title, String desc, String date, TaskPriority priority) onSave;
+  final Function(String title, String desc, String date, TaskPriority priority, bool isReminder) onSave;
 
   const AddTaskModal({
     Key? key,
@@ -23,6 +23,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
   late TextEditingController _descController;
   late TaskPriority _selectedPriority;
   String _selectedDate = '';
+  bool _isReminder = false;
   
   bool _showingCalendar = false;
   late DateTime _calMonth;
@@ -33,6 +34,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
     _titleController = TextEditingController(text: widget.taskToEdit?.title ?? '');
     _descController = TextEditingController(text: widget.taskToEdit?.desc ?? '');
     _selectedPriority = widget.taskToEdit?.priority ?? TaskPriority.media;
+    _isReminder = widget.taskToEdit?.isReminder ?? false;
     
     if (widget.taskToEdit != null) {
       _selectedDate = widget.taskToEdit!.date;
@@ -73,7 +75,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
       );
       return;
     }
-    widget.onSave(title, _descController.text.trim(), _selectedDate, _selectedPriority);
+    widget.onSave(title, _descController.text.trim(), _selectedDate, _selectedPriority, _isReminder);
     Navigator.pop(context);
   }
 
@@ -193,7 +195,7 @@ class _AddTaskModalState extends State<AddTaskModal> {
               });
             },
             child: Text(
-              'Sin fecha (recordatorio)',
+              'Borrar fecha',
               style: TextStyle(fontSize: 12, color: colors.muted),
             ),
           )
@@ -286,9 +288,25 @@ class _AddTaskModalState extends State<AddTaskModal> {
                         ),
                       ),
                       const SizedBox(height: 4),
-                      Text(
-                        'Sin fecha = recordatorio',
-                        style: TextStyle(fontSize: 11, color: colors.muted),
+                      Row(
+                        children: [
+                          SizedBox(
+                            height: 24,
+                            width: 24,
+                            child: Checkbox(
+                              value: _isReminder,
+                              activeColor: colors.accent,
+                              onChanged: (val) {
+                                setState(() => _isReminder = val ?? false);
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Es un recordatorio',
+                            style: TextStyle(fontSize: 12, color: colors.fg2),
+                          ),
+                        ],
                       ),
                     ],
                   ),

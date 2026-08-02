@@ -32,13 +32,14 @@ class AlertsView extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => AddTaskModal(
         taskToEdit: task,
-        onSave: (title, desc, date, priority) {
+        onSave: (title, desc, date, priority, isReminder) {
           provider.addOrUpdateTask(
             id: task.id,
             title: title,
             desc: desc,
             date: date,
             priority: priority,
+            isReminder: isReminder,
           );
         },
       ),
@@ -190,15 +191,36 @@ class AlertsView extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: colors.danger.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(9999),
-                                ),
-                                child: Text(
-                                  t.done ? 'Completado' : 'Pendiente',
-                                  style: TextStyle(fontSize: 11, color: colors.danger, fontWeight: FontWeight.w500),
+                              GestureDetector(
+                                onTap: () {
+                                  provider.toggleDone(t.id);
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: t.done ? colors.accent.withOpacity(0.1) : colors.danger.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(9999),
+                                    border: Border.all(color: t.done ? colors.accent.withOpacity(0.2) : colors.danger.withOpacity(0.2)),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        t.done ? Icons.check_circle : Icons.radio_button_unchecked,
+                                        size: 14,
+                                        color: t.done ? colors.accent : colors.danger,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        t.done ? 'Completado' : 'Marcar hecho',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: t.done ? colors.accent : colors.danger,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ],

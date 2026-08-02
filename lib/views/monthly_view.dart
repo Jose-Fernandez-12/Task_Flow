@@ -42,13 +42,14 @@ class _MonthlyViewState extends State<MonthlyView> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => AddTaskModal(
         taskToEdit: task,
-        onSave: (title, desc, date, priority) {
+        onSave: (title, desc, date, priority, isReminder) {
           provider.addOrUpdateTask(
             id: task.id,
             title: title,
             desc: desc,
             date: date,
             priority: priority,
+            isReminder: isReminder,
           );
         },
       ),
@@ -88,7 +89,7 @@ class _MonthlyViewState extends State<MonthlyView> {
     // Filter tasks for this month
     List<Task> monthTasks = [];
     for (var t in provider.tasks) {
-      if (t.date.isEmpty) continue;
+      if (t.date.isEmpty || t.isReminder) continue;
       try {
         final d = DateTime.parse(t.date);
         if (d.year == displayMonth.year && d.month == displayMonth.month) {

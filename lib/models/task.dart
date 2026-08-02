@@ -13,6 +13,7 @@ class Task {
   String date; // "YYYY-MM-DD" o vacio
   TaskPriority priority;
   bool done;
+  bool isReminder;
   final int createdAt; // Timestamp in milliseconds
 
   Task({
@@ -22,6 +23,7 @@ class Task {
     this.date = '',
     this.priority = TaskPriority.media,
     this.done = false,
+    this.isReminder = false,
     required this.createdAt,
   });
 
@@ -37,6 +39,7 @@ class Task {
       date: json['date'] as String? ?? '',
       priority: parsedPriority,
       done: json['done'] as bool? ?? false,
+      isReminder: json['isReminder'] as bool? ?? ((json['date'] as String? ?? '') == ''),
       createdAt: json['createdAt'] as int? ?? DateTime.now().millisecondsSinceEpoch,
     );
   }
@@ -49,6 +52,7 @@ class Task {
       'date': date,
       'priority': priority.name, // Enum to string ("alta", "media", "baja")
       'done': done,
+      'isReminder': isReminder,
       'createdAt': createdAt,
     };
   }

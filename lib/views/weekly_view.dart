@@ -34,13 +34,14 @@ class WeeklyView extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => AddTaskModal(
         taskToEdit: task,
-        onSave: (title, desc, date, priority) {
+        onSave: (title, desc, date, priority, isReminder) {
           provider.addOrUpdateTask(
             id: task.id,
             title: title,
             desc: desc,
             date: date,
             priority: priority,
+            isReminder: isReminder,
           );
         },
       ),
@@ -82,7 +83,7 @@ class WeeklyView extends StatelessWidget {
     int totalWeekTasks = 0;
 
     for (var t in provider.tasks) {
-      if (t.date.isEmpty) continue;
+      if (t.date.isEmpty || t.isReminder) continue;
       try {
         final d = DateTime.parse(t.date);
         final dateOnly = DateTime(d.year, d.month, d.day);
