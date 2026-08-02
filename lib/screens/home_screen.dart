@@ -33,13 +33,14 @@ class _HomeScreenState extends State<HomeScreen> {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (ctx) => AddTaskModal(
-        onSave: (title, desc, date, priority, isReminder) {
+        onSave: (title, desc, date, priority, type, time) {
           provider.addOrUpdateTask(
             title: title,
             desc: desc,
             date: date,
             priority: priority,
-            isReminder: isReminder,
+            type: type,
+            time: time,
           );
         },
       ),
@@ -196,7 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Icons.notifications,
                               colors,
                               context,
-                              badgeCount: provider.recordatorios.length,
+                              badgeCount: provider.recordatoriosPendientes.length,
                             ),
                           ],
                         ),
