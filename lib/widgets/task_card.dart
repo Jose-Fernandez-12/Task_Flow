@@ -8,6 +8,7 @@ class TaskCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onToggleDone;
   final VoidCallback onDelete;
+  final VoidCallback? onPostpone;
 
   const TaskCard({
     Key? key,
@@ -15,6 +16,7 @@ class TaskCard extends StatelessWidget {
     required this.onTap,
     required this.onToggleDone,
     required this.onDelete,
+    this.onPostpone,
   }) : super(key: key);
 
   String _formatDate(String dateStr) {
@@ -52,12 +54,26 @@ class TaskCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8.0),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Opacity(
+      child: Dismissible(
+        key: Key('dismiss_${task.id}'),
+        background: _buildSwipeBackground(colors.success, Icons.check, 'Completar', Alignment.centerLeft),
+        secondaryBackground: _buildSwipeBackground(colors.warn, Icons.schedule, 'Posponer', Alignment.centerRight),
+        confirmDismiss: (direction) async {
+          if (direction == DismissDirection.startToEnd) {
+            onToggleDone();
+            return false;
+          } else if (direction == DismissDirection.endToStart) {
+            if (onPostpone != null) onPostpone!();
+            return false;
+          }
+          return false;
+        },
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(16),
+            child: Opacity(
             opacity: isCompleted ? 0.55 : 1.0,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
@@ -178,6 +194,7 @@ class TaskCard extends StatelessWidget {
           ),
         ),
       ),
+      ),
     ),
   );
 }
@@ -205,6 +222,25 @@ class TaskCard extends StatelessWidget {
               fontFamily: 'Geist Mono', // Fallback handled by Flutter if not loaded properly, but let's assume it works or uses default mono
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSwipeBackground(Color color, IconData icon, String text, Alignment alignment) {
+    return Container(
+      alignment: alignment,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: Colors.white),
+          const SizedBox(height: 4),
+          Text(text, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
         ],
       ),
     );

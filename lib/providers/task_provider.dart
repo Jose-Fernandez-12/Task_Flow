@@ -101,6 +101,27 @@ class TaskProvider with ChangeNotifier {
     }
   }
 
+  void postponeTask(String id) {
+    final index = _tasks.indexWhere((t) => t.id == id);
+    if (index != -1) {
+      final task = _tasks[index];
+      if (task.date.isNotEmpty) {
+        try {
+          final currentDate = DateTime.parse(task.date);
+          final nextDate = currentDate.add(const Duration(days: 1));
+          task.date = "${nextDate.year}-${nextDate.month.toString().padLeft(2, '0')}-${nextDate.day.toString().padLeft(2, '0')}";
+        } catch (e) {
+          final now = DateTime.now().add(const Duration(days: 1));
+          task.date = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+        }
+      } else {
+        final now = DateTime.now().add(const Duration(days: 1));
+        task.date = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+      }
+      _saveTasks();
+    }
+  }
+
   void deleteTask(String id) {
     final index = _tasks.indexWhere((t) => t.id == id);
     if (index != -1) {

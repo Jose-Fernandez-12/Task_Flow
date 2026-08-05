@@ -197,6 +197,7 @@ class WeeklyView extends StatelessWidget {
                       provider.deleteTask(t.id);
                       _showDeleteSnackbar(context, provider);
                     },
+                    onPostpone: () => provider.postponeTask(t.id),
                   ))
               ],
             ),
