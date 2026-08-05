@@ -196,6 +196,7 @@ class DailyView extends StatelessWidget {
         provider.deleteTask(task.id);
         _showDeleteSnackbar(context, provider);
       },
+      onPostpone: () => provider.postponeTask(task.id),
     );
   }
 }

@@ -293,6 +293,7 @@ class _MonthlyViewState extends State<MonthlyView> {
                       provider.deleteTask(t.id);
                       _showDeleteSnackbar(context, provider);
                     },
+                    onPostpone: () => provider.postponeTask(t.id),
                   ))
                 ],
               ),
