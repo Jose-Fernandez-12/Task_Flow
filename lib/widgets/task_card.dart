@@ -36,7 +36,7 @@ class TaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
-    
+
     Color priorityColor;
     switch (task.priority) {
       case TaskPriority.alta:
@@ -54,55 +54,63 @@ class TaskCard extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8.0),
-      child: Dismissible(
-        key: Key('dismiss_${task.id}'),
-        background: _buildSwipeBackground(colors.success, Icons.check, 'Completar', Alignment.centerLeft),
-        secondaryBackground: _buildSwipeBackground(colors.warn, Icons.schedule, 'Posponer', Alignment.centerRight),
-        confirmDismiss: (direction) async {
-          if (direction == DismissDirection.startToEnd) {
-            onToggleDone();
-            return false;
-          } else if (direction == DismissDirection.endToStart) {
-            if (onPostpone != null) onPostpone!();
-            return false;
-          }
-          return false;
-        },
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
+      child: isCompleted
+          ? _buildCardContent(priorityColor, colors, isCompleted)
+          : Dismissible(
+              key: Key('dismiss_${task.id}'),
+              background: _buildSwipeBackground(colors.success, Icons.check, 'Completar', Alignment.centerLeft),
+              secondaryBackground: _buildSwipeBackground(colors.warn, Icons.schedule, 'Posponer', Alignment.centerRight),
+              confirmDismiss: (direction) async {
+                if (direction == DismissDirection.startToEnd) {
+                  onToggleDone();
+                  return false;
+                } else if (direction == DismissDirection.endToStart) {
+                  if (onPostpone != null) onPostpone!();
+                  return false;
+                }
+                return false;
+              },
+              child: _buildCardContent(priorityColor, colors, isCompleted),
+            ),
+    );
+  }
+
+  Widget _buildCardContent(Color priorityColor, AppColors colors, bool isCompleted) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Opacity(
+          opacity: isCompleted ? 0.55 : 1.0,
+          child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
-            child: Opacity(
-            opacity: isCompleted ? 0.55 : 1.0,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(
-                  color: colors.surface,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isCompleted ? Colors.transparent : colors.borderSoft,
-                    width: 1,
-                  ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isCompleted ? Colors.transparent : colors.borderSoft,
+                  width: 1,
                 ),
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    // Left Priority Border
-                    Positioned(
-                      left: -16,
-                      top: -14,
-                      bottom: -14,
-                      child: Container(
-                        width: 4,
-                        decoration: BoxDecoration(
-                          color: isCompleted ? Colors.transparent : priorityColor,
-                        ),
+              ),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Left Priority Border
+                  Positioned(
+                    left: -16,
+                    top: -14,
+                    bottom: -14,
+                    child: Container(
+                      width: 4,
+                      decoration: BoxDecoration(
+                        color: isCompleted ? Colors.transparent : priorityColor,
                       ),
                     ),
-                    Row(
+                  ),
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Checkbox
@@ -194,10 +202,8 @@ class TaskCard extends StatelessWidget {
           ),
         ),
       ),
-      ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildTag({IconData? icon, required String text, required Color color, required Color bgColor}) {
     return Container(
