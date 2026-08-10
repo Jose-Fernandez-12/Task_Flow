@@ -23,6 +23,26 @@ class PomodoroView extends StatelessWidget {
         return 'Arena';
       case PomodoroTheme.ocean:
         return 'Océano';
+      case PomodoroTheme.coffee:
+        return 'Café';
+      case PomodoroTheme.zen:
+        return 'Bambú';
+      case PomodoroTheme.battery:
+        return 'Energía';
+      case PomodoroTheme.crystal:
+        return 'Cristal';
+      case PomodoroTheme.vinyl:
+        return 'Música';
+      case PomodoroTheme.candle:
+        return 'Vela';
+      case PomodoroTheme.mountain:
+        return 'Montaña';
+      case PomodoroTheme.balloon:
+        return 'Globo';
+      case PomodoroTheme.ufo:
+        return 'OVNI';
+      case PomodoroTheme.windmill:
+        return 'Molino';
     }
   }
 
@@ -40,6 +60,26 @@ class PomodoroView extends StatelessWidget {
         return Icons.hourglass_bottom;
       case PomodoroTheme.ocean:
         return Icons.water_drop;
+      case PomodoroTheme.coffee:
+        return Icons.coffee;
+      case PomodoroTheme.zen:
+        return Icons.spa;
+      case PomodoroTheme.battery:
+        return Icons.bolt;
+      case PomodoroTheme.crystal:
+        return Icons.diamond;
+      case PomodoroTheme.vinyl:
+        return Icons.album;
+      case PomodoroTheme.candle:
+        return Icons.light;
+      case PomodoroTheme.mountain:
+        return Icons.landscape;
+      case PomodoroTheme.balloon:
+        return Icons.air;
+      case PomodoroTheme.ufo:
+        return Icons.flight_takeoff;
+      case PomodoroTheme.windmill:
+        return Icons.wind_power;
     }
   }
 
@@ -198,17 +238,19 @@ class PomodoroView extends StatelessWidget {
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(color: colors.borderSoft),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: PomodoroTheme.values.map((theme) {
-                          final isSelected = state.selectedTheme == theme;
-                          return Expanded(
-                            child: GestureDetector(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        physics: const BouncingScrollPhysics(),
+                        child: Row(
+                          children: PomodoroTheme.values.map((theme) {
+                            final isSelected = state.selectedTheme == theme;
+                            return GestureDetector(
                               onTap: () => provider.setTheme(theme),
                               behavior: HitTestBehavior.opaque,
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
-                                padding: const EdgeInsets.symmetric(vertical: 6),
+                                margin: const EdgeInsets.symmetric(horizontal: 2),
+                                padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 14),
                                 decoration: BoxDecoration(
                                   color: isSelected ? colors.surfaceWarm : Colors.transparent,
                                   borderRadius: BorderRadius.circular(12),
@@ -225,10 +267,8 @@ class PomodoroView extends StatelessWidget {
                                     const SizedBox(height: 2),
                                     Text(
                                       _getThemeName(theme),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                        fontSize: 10,
+                                        fontSize: 10.5,
                                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                                         color: isSelected ? colors.fg : colors.muted,
                                       ),
@@ -236,9 +276,9 @@ class PomodoroView extends StatelessWidget {
                                   ],
                                 ),
                               ),
-                            ),
-                          );
-                        }).toList(),
+                            );
+                          }).toList(),
+                        ),
                       ),
                     ),
 

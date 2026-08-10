@@ -5,6 +5,16 @@ enum PomodoroTheme {
   potion,
   hourglass,
   ocean,
+  coffee,
+  zen,
+  battery,
+  crystal,
+  vinyl,
+  candle,
+  mountain,
+  balloon,
+  ufo,
+  windmill,
 }
 
 enum PomodoroStatus {
