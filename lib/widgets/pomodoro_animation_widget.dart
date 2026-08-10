@@ -281,23 +281,33 @@ class _ThemePainter extends CustomPainter {
   }
 
   void _paintSpace(Canvas canvas, Size size, Offset center) {
-    // Twinkling background stars
+    // Falling and Twinkling background stars
     final starPaint = Paint()..color = Colors.white.withOpacity(0.7);
-    for (int i = 0; i < 15; i++) {
-      double angle = i * (math.pi * 2 / 15);
-      double dist = 30.0 + (i * 7) % 65;
-      double opacity = 0.3 + 0.7 * math.sin(animationValue * math.pi * 2 + i);
-      starPaint.color = Colors.white.withOpacity(opacity.clamp(0.1, 0.9));
-      canvas.drawCircle(
-        Offset(center.dx + math.cos(angle) * dist, center.dy + math.sin(angle) * dist),
-        (i % 3) + 1.5,
-        starPaint,
-      );
+    for (int i = 0; i < 20; i++) {
+      double dist = 25.0 + (i * 12) % 65;
+      double angle = (i * 37) * math.pi / 180; 
+      
+      // Falling effect
+      double fallOffset = isRunning ? (animationValue * 120 + (i * 10)) % 120 : 0;
+      
+      double opacity = 0.2 + 0.8 * math.sin(animationValue * math.pi * 4 + i);
+      starPaint.color = Colors.white.withOpacity(opacity.clamp(0.1, 1.0));
+      
+      double sx = center.dx + math.cos(angle) * dist;
+      double sy = center.dy - 60 + math.sin(angle) * dist + fallOffset;
+      if (sy > center.dy + 60) sy -= 120; // wrap around
+
+      canvas.drawCircle(Offset(sx, sy), (i % 3) + 1.5, starPaint);
     }
 
     // Rocket moves up as progress increases
     final launchY = (1.0 - progress) * 40;
-    final rocketCenter = Offset(center.dx, center.dy + launchY);
+    
+    // Shaking effect when engine is running
+    final shakeX = isRunning ? math.sin(animationValue * math.pi * 30) * 1.5 : 0.0;
+    final shakeY = isRunning ? math.cos(animationValue * math.pi * 25) * 1.5 : 0.0;
+    
+    final rocketCenter = Offset(center.dx + shakeX, center.dy + launchY + shakeY);
 
     // Rocket Exhaust Flames if running
     if (isRunning) {

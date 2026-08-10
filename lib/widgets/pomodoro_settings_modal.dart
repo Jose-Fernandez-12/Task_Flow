@@ -4,7 +4,7 @@ import '../theme/app_theme.dart';
 
 class PomodoroSettingsModal extends StatefulWidget {
   final PomodoroState state;
-  final Function(int focus, int shortBreak, int longBreak) onSave;
+  final Function(int focus, int shortBreak, int longBreak, bool intervalEnabled, int intervalDuration) onSave;
 
   const PomodoroSettingsModal({
     Key? key,
@@ -20,6 +20,8 @@ class _PomodoroSettingsModalState extends State<PomodoroSettingsModal> {
   late int _focusMinutes;
   late int _shortBreakMinutes;
   late int _longBreakMinutes;
+  late bool _intervalEnabled;
+  late int _intervalDuration;
 
   @override
   void initState() {
@@ -27,6 +29,8 @@ class _PomodoroSettingsModalState extends State<PomodoroSettingsModal> {
     _focusMinutes = widget.state.customFocusMinutes;
     _shortBreakMinutes = widget.state.customShortBreakMinutes;
     _longBreakMinutes = widget.state.customLongBreakMinutes;
+    _intervalEnabled = widget.state.intervalBreaksEnabled;
+    _intervalDuration = widget.state.intervalBreakDurationMinutes;
   }
 
   @override
@@ -90,6 +94,42 @@ class _PomodoroSettingsModalState extends State<PomodoroSettingsModal> {
             colors: colors,
             onSelected: (val) => setState(() => _longBreakMinutes = val),
           ),
+          const SizedBox(height: 20),
+          
+          Divider(color: colors.border),
+          const SizedBox(height: 10),
+
+          // Interval Breaks Toggle
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Descansos Automáticos (Pausas Activas)',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: colors.fg,
+                ),
+              ),
+              Switch(
+                value: _intervalEnabled,
+                activeColor: colors.accent,
+                onChanged: (val) => setState(() => _intervalEnabled = val),
+              ),
+            ],
+          ),
+          
+          if (_intervalEnabled) ...[
+            const SizedBox(height: 10),
+            _buildDurationPicker(
+              label: 'Duración del Descanso',
+              value: _intervalDuration,
+              options: [1, 3, 5, 10],
+              colors: colors,
+              onSelected: (val) => setState(() => _intervalDuration = val),
+            ),
+          ],
+          
           const SizedBox(height: 30),
 
           // Save Button
@@ -104,7 +144,7 @@ class _PomodoroSettingsModalState extends State<PomodoroSettingsModal> {
                 ),
               ),
               onPressed: () {
-                widget.onSave(_focusMinutes, _shortBreakMinutes, _longBreakMinutes);
+                widget.onSave(_focusMinutes, _shortBreakMinutes, _longBreakMinutes, _intervalEnabled, _intervalDuration);
                 Navigator.pop(context);
               },
               child: Text(

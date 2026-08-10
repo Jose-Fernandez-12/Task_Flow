@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/pomodoro_state.dart';
+import '../services/notification_service.dart';
 
 class PomodoroProvider with ChangeNotifier {
   PomodoroState _state = PomodoroState();
@@ -11,6 +13,40 @@ class PomodoroProvider with ChangeNotifier {
   void setTheme(PomodoroTheme theme) {
     _state = _state.copyWith(selectedTheme: theme);
     notifyListeners();
+  }
+
+  void toggleIntervalBreaks(bool value) {
+    _state = _state.copyWith(intervalBreaksEnabled: value);
+    notifyListeners();
+  }
+
+  void setIntervalBreakDuration(int minutes) {
+    _state = _state.copyWith(intervalBreakDurationMinutes: minutes);
+    notifyListeners();
+  }
+
+  List<int> getBreakTriggers() {
+    if (!_state.intervalBreaksEnabled) return [];
+    if (_state.selectedMode != PomodoroMode.focus && _state.selectedMode != PomodoroMode.longBreak) return [];
+
+    int totalMinutes = _state.focusMinutes;
+    if (totalMinutes <= 35) return [];
+
+    List<int> triggers = [];
+    if (totalMinutes >= 45 && totalMinutes <= 60) {
+      // 1 break at the middle
+      triggers.add((totalMinutes * 60) ~/ 2);
+    } else if (totalMinutes == 90) {
+      // 2 breaks (at 60m and 30m remaining)
+      triggers.add(60 * 60);
+      triggers.add(30 * 60);
+    } else if (totalMinutes >= 120) {
+      // 3 breaks (at 90m, 60m, 30m remaining)
+      triggers.add(90 * 60);
+      triggers.add(60 * 60);
+      triggers.add(30 * 60);
+    }
+    return triggers;
   }
 
   void updateCustomDurations({int? focus, int? shortBreak, int? longBreak}) {
@@ -78,18 +114,56 @@ class PomodoroProvider with ChangeNotifier {
     notifyListeners();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_state.remainingSeconds > 0) {
-        _state = _state.copyWith(remainingSeconds: _state.remainingSeconds - 1);
-        notifyListeners();
+      if (_state.isCurrentlyInIntervalBreak) {
+        if (_state.intervalBreakRemainingSeconds > 0) {
+          _state = _state.copyWith(intervalBreakRemainingSeconds: _state.intervalBreakRemainingSeconds - 1);
+          notifyListeners();
+        } else {
+          // Descanso terminado, continuar
+          _playAlarm('¡Descanso terminado!', 'Es hora de volver a concentrarse.');
+          _state = _state.copyWith(
+            isCurrentlyInIntervalBreak: false,
+            remainingSeconds: _state.remainingSeconds > 0 ? _state.remainingSeconds - 1 : 0,
+          );
+          notifyListeners();
+        }
       } else {
-        _timer?.cancel();
-        _state = _state.copyWith(
-          status: PomodoroStatus.finished,
-          completedPomodoros: _state.completedPomodoros + 1,
-        );
-        notifyListeners();
+        if (_state.remainingSeconds > 0) {
+          int nextSecond = _state.remainingSeconds - 1;
+          List<int> triggers = getBreakTriggers();
+          
+          if (triggers.contains(nextSecond)) {
+            _playAlarm('¡Pausa Activa!', 'Tómate un descanso, te lo has ganado.');
+            _state = _state.copyWith(
+              remainingSeconds: nextSecond,
+              isCurrentlyInIntervalBreak: true,
+              intervalBreakRemainingSeconds: _state.intervalBreakDurationMinutes * 60,
+            );
+          } else {
+            _state = _state.copyWith(remainingSeconds: nextSecond);
+          }
+          notifyListeners();
+        } else {
+          _timer?.cancel();
+          _playAlarm('Sesión completada', '¡Gran trabajo completando este Pomodoro!');
+          _state = _state.copyWith(
+            status: PomodoroStatus.finished,
+            completedPomodoros: _state.completedPomodoros + 1,
+            isCurrentlyInIntervalBreak: false,
+          );
+          notifyListeners();
+        }
       }
     });
+  }
+
+  void _playAlarm(String title, String body) async {
+    NotificationService.showPomodoroAlert(title, body);
+    SystemSound.play(SystemSoundType.alert);
+    for (int i = 0; i < 4; i++) {
+      HapticFeedback.heavyImpact();
+      await Future.delayed(const Duration(milliseconds: 250));
+    }
   }
 
   void pauseTimer() {
@@ -111,13 +185,18 @@ class PomodoroProvider with ChangeNotifier {
       focusMinutes: minutes,
       remainingSeconds: minutes * 60,
       status: PomodoroStatus.idle,
+      isCurrentlyInIntervalBreak: false,
+      intervalBreakRemainingSeconds: 0,
     );
     notifyListeners();
   }
 
   String get formattedTime {
-    int minutes = _state.remainingSeconds ~/ 60;
-    int seconds = _state.remainingSeconds % 60;
+    int currentSeconds = _state.isCurrentlyInIntervalBreak 
+        ? _state.intervalBreakRemainingSeconds 
+        : _state.remainingSeconds;
+    int minutes = currentSeconds ~/ 60;
+    int seconds = currentSeconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 

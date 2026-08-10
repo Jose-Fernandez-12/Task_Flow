@@ -29,6 +29,12 @@ class PomodoroState {
   final int customLongBreakMinutes;
   final int completedPomodoros;
 
+  // Interval Break Variables
+  final bool intervalBreaksEnabled;
+  final int intervalBreakDurationMinutes;
+  final bool isCurrentlyInIntervalBreak;
+  final int intervalBreakRemainingSeconds;
+
   PomodoroMode get selectedMode => _selectedMode ?? PomodoroMode.focus;
 
   PomodoroState({
@@ -41,6 +47,10 @@ class PomodoroState {
     this.customShortBreakMinutes = 1,
     this.customLongBreakMinutes = 15,
     this.completedPomodoros = 0,
+    this.intervalBreaksEnabled = true,
+    this.intervalBreakDurationMinutes = 5,
+    this.isCurrentlyInIntervalBreak = false,
+    this.intervalBreakRemainingSeconds = 0,
   }) : _selectedMode = selectedMode ?? PomodoroMode.focus;
 
   PomodoroState copyWith({
@@ -53,6 +63,10 @@ class PomodoroState {
     int? customShortBreakMinutes,
     int? customLongBreakMinutes,
     int? completedPomodoros,
+    bool? intervalBreaksEnabled,
+    int? intervalBreakDurationMinutes,
+    bool? isCurrentlyInIntervalBreak,
+    int? intervalBreakRemainingSeconds,
   }) {
     return PomodoroState(
       focusMinutes: focusMinutes ?? this.focusMinutes,
@@ -64,6 +78,10 @@ class PomodoroState {
       customShortBreakMinutes: customShortBreakMinutes ?? this.customShortBreakMinutes,
       customLongBreakMinutes: customLongBreakMinutes ?? this.customLongBreakMinutes,
       completedPomodoros: completedPomodoros ?? this.completedPomodoros,
+      intervalBreaksEnabled: intervalBreaksEnabled ?? this.intervalBreaksEnabled,
+      intervalBreakDurationMinutes: intervalBreakDurationMinutes ?? this.intervalBreakDurationMinutes,
+      isCurrentlyInIntervalBreak: isCurrentlyInIntervalBreak ?? this.isCurrentlyInIntervalBreak,
+      intervalBreakRemainingSeconds: intervalBreakRemainingSeconds ?? this.intervalBreakRemainingSeconds,
     );
   }
 

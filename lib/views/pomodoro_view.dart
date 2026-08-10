@@ -42,12 +42,14 @@ class PomodoroView extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (ctx) => PomodoroSettingsModal(
         state: provider.state,
-        onSave: (focus, shortB, longB) {
+        onSave: (focus, shortB, longB, intervalEnabled, intervalDuration) {
           provider.updateCustomDurations(
             focus: focus,
             shortBreak: shortB,
             longBreak: longB,
           );
+          provider.toggleIntervalBreaks(intervalEnabled);
+          provider.setIntervalBreakDuration(intervalDuration);
         },
       ),
     );
@@ -172,7 +174,7 @@ class PomodoroView extends StatelessWidget {
                     child: PomodoroAnimationWidget(
                       theme: state.selectedTheme,
                       progress: progress,
-                      isRunning: isRunning,
+                      isRunning: isRunning && !state.isCurrentlyInIntervalBreak,
                     ),
                   ),
 
@@ -233,26 +235,68 @@ class PomodoroView extends StatelessWidget {
                   const SizedBox(height: 24),
 
                   // Big Digital Timer Text
-                  Text(
-                    provider.formattedTime,
-                    style: TextStyle(
-                      fontSize: 64,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: -1,
-                      color: colors.fg,
-                      fontFamily: 'monospace',
-                    ),
+                  Column(
+                    children: [
+                      if (state.isCurrentlyInIntervalBreak)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 4.0),
+                          child: Text(
+                            '¡Pausa Activa!',
+                            style: TextStyle(
+                              color: colors.accent,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ),
+                      Text(
+                        provider.formattedTime,
+                        style: TextStyle(
+                          fontSize: 64,
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: -1,
+                          color: state.isCurrentlyInIntervalBreak ? colors.accent : colors.fg,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ],
                   ),
 
-                  // Progress Bar
+                  // Progress Bar with Break Markers
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 40.0, vertical: 8.0),
-                    child: LinearProgressIndicator(
-                      value: progress,
-                      minHeight: 6,
-                      backgroundColor: colors.surfaceWarm,
-                      valueColor: AlwaysStoppedAnimation<Color>(colors.accent),
-                      borderRadius: BorderRadius.circular(4),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final triggers = provider.getBreakTriggers();
+                        final totalSeconds = state.focusMinutes * 60;
+                        
+                        return Stack(
+                          children: [
+                            LinearProgressIndicator(
+                              value: progress,
+                              minHeight: 6,
+                              backgroundColor: colors.surfaceWarm,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                state.isCurrentlyInIntervalBreak ? colors.accent.withOpacity(0.5) : colors.accent
+                              ),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            if (totalSeconds > 0)
+                              ...triggers.map((triggerSeconds) {
+                                final fraction = 1 - (triggerSeconds / totalSeconds);
+                                return Positioned(
+                                  left: constraints.maxWidth * fraction,
+                                  top: 0,
+                                  bottom: 0,
+                                  child: Container(
+                                    width: 3,
+                                    color: Colors.white.withOpacity(0.9),
+                                  ),
+                                );
+                              }).toList(),
+                          ],
+                        );
+                      }
                     ),
                   ),
 
