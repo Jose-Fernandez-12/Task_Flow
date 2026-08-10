@@ -7,6 +7,7 @@ import '../views/daily_view.dart';
 import '../views/weekly_view.dart';
 import '../views/monthly_view.dart';
 import '../views/alerts_view.dart';
+import '../views/pomodoro_view.dart';
 import '../widgets/add_task_modal.dart';
 import 'dart:ui' show ImageFilter;
 
@@ -24,6 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
     DailyView(),
     WeeklyView(),
     MonthlyView(),
+    PomodoroView(),
     AlertsView(),
   ];
 
@@ -73,7 +75,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Row(
                             children: [
                               Text(
-                                'TaskFlow ',
+                                _currentIndex == 3 ? 'Pomodoro ' : 'TaskFlow ',
                                 style: TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w600,
@@ -82,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               Text(
-                                'Hoy',
+                                _currentIndex == 3 ? 'Focus' : 'Hoy',
                                 style: TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w600,
@@ -93,7 +95,9 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            DateFormat('EEEE, d MMMM', 'es_ES').format(now).capitalize(),
+                            _currentIndex == 3
+                                ? 'Tiempo de concentrarte'
+                                : DateFormat('EEEE, d MMMM', 'es_ES').format(now).capitalize(),
                             style: TextStyle(
                               fontSize: 13,
                               color: colors.muted,
@@ -150,30 +154,31 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // FAB
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 20, bottom: 20),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: colors.accent.withOpacity(0.35),
-                              blurRadius: 32,
-                              offset: const Offset(0, 8),
-                            )
-                          ],
-                        ),
-                        child: FloatingActionButton(
-                          onPressed: () => _showAddTaskModal(context, provider),
-                          backgroundColor: colors.accent,
-                          elevation: 0,
-                          child: Icon(Icons.add, color: colors.accentOn, size: 28),
+                  if (_currentIndex != 3)
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 20, bottom: 20),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: colors.accent.withOpacity(0.35),
+                                blurRadius: 32,
+                                offset: const Offset(0, 8),
+                              )
+                            ],
+                          ),
+                          child: FloatingActionButton(
+                            onPressed: () => _showAddTaskModal(context, provider),
+                            backgroundColor: colors.accent,
+                            elevation: 0,
+                            child: Icon(Icons.add, color: colors.accentOn, size: 28),
+                          ),
                         ),
                       ),
                     ),
-                  ),
                   // Tab Bar
                   ClipRRect(
                     child: BackdropFilter(
@@ -191,8 +196,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             _buildTabItem(0, 'Diario', Icons.today, colors, context),
                             _buildTabItem(1, 'Semanal', Icons.calendar_view_week, colors, context),
                             _buildTabItem(2, 'Mensual', Icons.calendar_month, colors, context),
+                            _buildTabItem(3, 'Pomodoro', Icons.timer, colors, context),
                             _buildTabItem(
-                              3,
+                              4,
                               'Alertas',
                               Icons.notifications,
                               colors,
