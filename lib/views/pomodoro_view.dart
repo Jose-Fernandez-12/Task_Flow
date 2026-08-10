@@ -19,6 +19,10 @@ class PomodoroView extends StatelessWidget {
         return 'Espacio';
       case PomodoroTheme.potion:
         return 'Poción';
+      case PomodoroTheme.hourglass:
+        return 'Arena';
+      case PomodoroTheme.ocean:
+        return 'Océano';
     }
   }
 
@@ -32,6 +36,10 @@ class PomodoroView extends StatelessWidget {
         return Icons.rocket_launch;
       case PomodoroTheme.potion:
         return Icons.science;
+      case PomodoroTheme.hourglass:
+        return Icons.hourglass_bottom;
+      case PomodoroTheme.ocean:
+        return Icons.water_drop;
     }
   }
 
@@ -183,7 +191,7 @@ class PomodoroView extends StatelessWidget {
                   // Theme Selector (Hidden when running)
                   if (!isRunning)
                     Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 24),
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
                         color: colors.surface,
@@ -200,7 +208,7 @@ class PomodoroView extends StatelessWidget {
                               behavior: HitTestBehavior.opaque,
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding: const EdgeInsets.symmetric(vertical: 6),
                                 decoration: BoxDecoration(
                                   color: isSelected ? colors.surfaceWarm : Colors.transparent,
                                   borderRadius: BorderRadius.circular(12),
@@ -211,14 +219,16 @@ class PomodoroView extends StatelessWidget {
                                   children: [
                                     Icon(
                                       _getThemeIcon(theme),
-                                      size: 20,
+                                      size: 18,
                                       color: isSelected ? colors.accent : colors.muted,
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
                                       _getThemeName(theme),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                       style: TextStyle(
-                                        fontSize: 11,
+                                        fontSize: 10,
                                         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                                         color: isSelected ? colors.fg : colors.muted,
                                       ),

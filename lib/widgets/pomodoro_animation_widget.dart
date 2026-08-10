@@ -120,6 +120,12 @@ class _ThemePainter extends CustomPainter {
       case PomodoroTheme.potion:
         _paintPotion(canvas, size, center);
         break;
+      case PomodoroTheme.hourglass:
+        _paintHourglass(canvas, size, center);
+        break;
+      case PomodoroTheme.ocean:
+        _paintOcean(canvas, size, center);
+        break;
     }
   }
 
@@ -281,10 +287,16 @@ class _ThemePainter extends CustomPainter {
   }
 
   void _paintSpace(Canvas canvas, Size size, Offset center) {
+    // Clip whole animation to the circular container
+    final circleClip = Path()
+      ..addOval(Rect.fromCenter(center: center, width: size.width, height: size.height));
+    canvas.save();
+    canvas.clipPath(circleClip);
+
     // Falling and Twinkling background stars
     final starPaint = Paint()..color = Colors.white.withOpacity(0.7);
-    for (int i = 0; i < 20; i++) {
-      double dist = 25.0 + (i * 12) % 65;
+    for (int i = 0; i < 22; i++) {
+      double dist = 20.0 + (i * 11) % 70;
       double angle = (i * 37) * math.pi / 180; 
       
       // Falling effect
@@ -297,15 +309,72 @@ class _ThemePainter extends CustomPainter {
       double sy = center.dy - 60 + math.sin(angle) * dist + fallOffset;
       if (sy > center.dy + 60) sy -= 120; // wrap around
 
-      canvas.drawCircle(Offset(sx, sy), (i % 3) + 1.5, starPaint);
+      canvas.drawCircle(Offset(sx, sy), (i % 3) + 1.2, starPaint);
     }
 
-    // Rocket moves up as progress increases
-    final launchY = (1.0 - progress) * 40;
+    // DESTINATION PLANET (Approaches as progress increases)
+    final planetY = center.dy - 60 + progress * 25; // Smooth descent toward upper center
+    final planetRadius = 22.0 + progress * 16.0;   // Smooth growth in size (22 -> 38)
+    final planetCenter = Offset(center.dx, planetY);
+
+    final ringRect = Rect.fromCenter(
+      center: planetCenter,
+      width: planetRadius * 2.6,
+      height: planetRadius * 0.7,
+    );
+
+    final ringPaint = Paint()
+      ..color = Colors.amber.withOpacity(0.85)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.5;
+
+    // 1. Draw BACK portion of Saturn Ring (behind planet)
+    final ringBackPath = Path()..addArc(ringRect, math.pi, math.pi);
+    canvas.drawPath(ringBackPath, ringPaint);
+
+    // 2. Planet Atmospheric Glow
+    final glowPaint = Paint()
+      ..color = Colors.cyanAccent.withOpacity(0.3)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14);
+    canvas.drawCircle(planetCenter, planetRadius + 6, glowPaint);
+
+    // 3. Planet Body (Curated 3D Shader)
+    final planetPaint = Paint()
+      ..shader = RadialGradient(
+        center: const Alignment(-0.3, -0.4),
+        colors: [
+          Colors.cyanAccent.shade100,
+          Colors.teal.shade400,
+          Colors.indigo.shade900,
+        ],
+        stops: const [0.1, 0.65, 1.0],
+      ).createShader(Rect.fromCircle(center: planetCenter, radius: planetRadius));
+    canvas.drawCircle(planetCenter, planetRadius, planetPaint);
+
+    // 4. Subtle Surface Cloud Bands
+    final bandPaint = Paint()
+      ..color = Colors.white.withOpacity(0.18)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3;
+    canvas.drawArc(
+      Rect.fromCircle(center: planetCenter, radius: planetRadius * 0.7),
+      -0.2,
+      1.8,
+      false,
+      bandPaint,
+    );
+
+    // 5. Draw FRONT portion of Saturn Ring (in front of planet for 3D depth)
+    final ringFrontPath = Path()..addArc(ringRect, 0, math.pi);
+    canvas.drawPath(ringFrontPath, ringPaint);
+
+    // ROCKET TRAJECTORY
+    // Rocket moves smoothly from bottom (+55) to just below planet (+12)
+    final launchY = 55.0 - progress * 43.0; 
     
     // Shaking effect when engine is running
-    final shakeX = isRunning ? math.sin(animationValue * math.pi * 30) * 1.5 : 0.0;
-    final shakeY = isRunning ? math.cos(animationValue * math.pi * 25) * 1.5 : 0.0;
+    final shakeX = isRunning ? math.sin(animationValue * math.pi * 30) * 1.2 : 0.0;
+    final shakeY = isRunning ? math.cos(animationValue * math.pi * 25) * 1.2 : 0.0;
     
     final rocketCenter = Offset(center.dx + shakeX, center.dy + launchY + shakeY);
 
@@ -316,9 +385,9 @@ class _ThemePainter extends CustomPainter {
         ..style = PaintingStyle.fill;
 
       final p = Path()
-        ..moveTo(rocketCenter.dx - 12, rocketCenter.dy + 35)
-        ..lineTo(rocketCenter.dx, rocketCenter.dy + 55 + math.sin(animationValue * math.pi * 6) * 10)
-        ..lineTo(rocketCenter.dx + 12, rocketCenter.dy + 35)
+        ..moveTo(rocketCenter.dx - 9, rocketCenter.dy + 22)
+        ..lineTo(rocketCenter.dx, rocketCenter.dy + 38 + math.sin(animationValue * math.pi * 6) * 7)
+        ..lineTo(rocketCenter.dx + 9, rocketCenter.dy + 22)
         ..close();
       canvas.drawPath(p, exhaustPaint);
     }
@@ -329,31 +398,230 @@ class _ThemePainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final rocketPath = Path()
-      ..moveTo(rocketCenter.dx, rocketCenter.dy - 45)
-      ..quadraticBezierTo(rocketCenter.dx + 25, rocketCenter.dy - 10, rocketCenter.dx + 20, rocketCenter.dy + 35)
-      ..lineTo(rocketCenter.dx - 20, rocketCenter.dy + 35)
-      ..quadraticBezierTo(rocketCenter.dx - 25, rocketCenter.dy - 10, rocketCenter.dx, rocketCenter.dy - 45)
+      ..moveTo(rocketCenter.dx, rocketCenter.dy - 30)
+      ..quadraticBezierTo(rocketCenter.dx + 18, rocketCenter.dy - 5, rocketCenter.dx + 13, rocketCenter.dy + 22)
+      ..lineTo(rocketCenter.dx - 13, rocketCenter.dy + 22)
+      ..quadraticBezierTo(rocketCenter.dx - 18, rocketCenter.dy - 5, rocketCenter.dx, rocketCenter.dy - 30)
       ..close();
     canvas.drawPath(rocketPath, bodyPaint);
 
     // Rocket Porthole Window
     final windowPaint = Paint()..color = Colors.cyanAccent;
-    canvas.drawCircle(Offset(rocketCenter.dx, rocketCenter.dy - 10), 10, windowPaint);
+    canvas.drawCircle(Offset(rocketCenter.dx, rocketCenter.dy - 7), 6, windowPaint);
 
     // Fins
-    final finPaint = Paint()..color = color.withOpacity(0.7);
+    final finPaint = Paint()..color = color.withOpacity(0.75);
     final leftFin = Path()
-      ..moveTo(rocketCenter.dx - 20, rocketCenter.dy + 15)
-      ..lineTo(rocketCenter.dx - 32, rocketCenter.dy + 40)
-      ..lineTo(rocketCenter.dx - 20, rocketCenter.dy + 35)
+      ..moveTo(rocketCenter.dx - 13, rocketCenter.dy + 8)
+      ..lineTo(rocketCenter.dx - 22, rocketCenter.dy + 24)
+      ..lineTo(rocketCenter.dx - 13, rocketCenter.dy + 22)
       ..close();
     final rightFin = Path()
-      ..moveTo(rocketCenter.dx + 20, rocketCenter.dy + 15)
-      ..lineTo(rocketCenter.dx + 32, rocketCenter.dy + 40)
-      ..lineTo(rocketCenter.dx + 20, rocketCenter.dy + 35)
+      ..moveTo(rocketCenter.dx + 13, rocketCenter.dy + 8)
+      ..lineTo(rocketCenter.dx + 22, rocketCenter.dy + 24)
+      ..lineTo(rocketCenter.dx + 13, rocketCenter.dy + 22)
       ..close();
     canvas.drawPath(leftFin, finPaint);
     canvas.drawPath(rightFin, finPaint);
+
+    canvas.restore();
+  }
+
+  void _paintHourglass(Canvas canvas, Size size, Offset center) {
+    const width = 60.0;
+    const height = 110.0;
+    final topY = center.dy - height / 2;
+    final bottomY = center.dy + height / 2;
+
+    final sandPaint = Paint()
+      ..color = Colors.amberAccent
+      ..style = PaintingStyle.fill;
+
+    final glassPaint = Paint()
+      ..color = Colors.white.withOpacity(0.85)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4
+      ..strokeJoin = StrokeJoin.round;
+
+    final capPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    // Outer Glass Path (Top bulb + Neck + Bottom bulb)
+    final glassPath = Path()
+      ..moveTo(center.dx - width / 2, topY)
+      ..quadraticBezierTo(center.dx - width / 2, center.dy - 15, center.dx - 6, center.dy)
+      ..quadraticBezierTo(center.dx - width / 2, center.dy + 15, center.dx - width / 2, bottomY)
+      ..lineTo(center.dx + width / 2, bottomY)
+      ..quadraticBezierTo(center.dx + width / 2, center.dy + 15, center.dx + 6, center.dy)
+      ..quadraticBezierTo(center.dx + width / 2, center.dy - 15, center.dx + width / 2, topY)
+      ..close();
+
+    // Clip sand to glass shape
+    canvas.save();
+    canvas.clipPath(glassPath);
+
+    // 1. Upper Chamber Sand (Decreases with progress)
+    final upperFill = (1.0 - progress);
+    if (upperFill > 0) {
+      final upperSandY = center.dy - (height / 2) * upperFill;
+      final upperSandPath = Path()
+        ..moveTo(center.dx - width, upperSandY)
+        ..lineTo(center.dx + width, upperSandY)
+        ..lineTo(center.dx + width, center.dy)
+        ..lineTo(center.dx - width, center.dy)
+        ..close();
+      canvas.drawPath(upperSandPath, sandPaint);
+    }
+
+    // 2. Lower Chamber Sand (Increases with progress)
+    if (progress > 0) {
+      final lowerSandHeight = (height / 2 - 10) * progress;
+      final lowerSandY = bottomY - lowerSandHeight;
+      final lowerSandPath = Path()
+        ..moveTo(center.dx - width, bottomY)
+        ..lineTo(center.dx + width, bottomY)
+        ..lineTo(center.dx + width, lowerSandY)
+        ..quadraticBezierTo(center.dx, lowerSandY - 6, center.dx - width, lowerSandY)
+        ..close();
+      canvas.drawPath(lowerSandPath, sandPaint);
+    }
+
+    // 3. Falling Sand Stream & Particles if running
+    if (isRunning && progress < 1.0) {
+      final streamPaint = Paint()
+        ..color = Colors.amberAccent
+        ..strokeWidth = 2.5
+        ..style = PaintingStyle.stroke;
+      canvas.drawLine(Offset(center.dx, center.dy - 10), Offset(center.dx, bottomY - 10), streamPaint);
+
+      // Sand particle sparks
+      final particlePaint = Paint()..color = Colors.white.withOpacity(0.9);
+      for (int i = 0; i < 5; i++) {
+        double p = (animationValue + i * 0.2) % 1.0;
+        double py = center.dy + p * (height / 2 - 15);
+        double px = center.dx + math.sin(p * math.pi * 4) * 2;
+        canvas.drawCircle(Offset(px, py), 1.5, particlePaint);
+      }
+    }
+
+    canvas.restore();
+
+    // Glass Outline & Caps
+    canvas.drawPath(glassPath, glassPaint);
+
+    // Wooden / Metal Caps on Top and Bottom
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(center: Offset(center.dx, topY - 3), width: width + 16, height: 8),
+        const Radius.circular(4),
+      ),
+      capPaint,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(center: Offset(center.dx, bottomY + 3), width: width + 16, height: 8),
+        const Radius.circular(4),
+      ),
+      capPaint,
+    );
+  }
+
+  void _paintOcean(Canvas canvas, Size size, Offset center) {
+    // Clip whole animation to the circular container
+    final circleClip = Path()
+      ..addOval(Rect.fromCenter(center: center, width: size.width, height: size.height));
+    canvas.save();
+    canvas.clipPath(circleClip);
+
+    // 1. Sky & Sun (Sun rises higher into sky as progress increases)
+    final sunY = center.dy - 5 - progress * 60; // Rises from above horizon up into sky
+    final sunCenter = Offset(center.dx, sunY);
+
+    // Sun Glow
+    final sunGlow = Paint()
+      ..color = Colors.amber.withOpacity(0.35)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 16);
+    canvas.drawCircle(sunCenter, 26, sunGlow);
+
+    // Sun Core
+    final sunPaint = Paint()..color = Colors.amber;
+    canvas.drawCircle(sunCenter, 18, sunPaint);
+
+    // Sun Rays when running
+    if (isRunning) {
+      final rayPaint = Paint()
+        ..color = Colors.amber.withOpacity(0.6)
+        ..strokeWidth = 2;
+      for (int i = 0; i < 8; i++) {
+        double angle = i * (math.pi / 4) + animationValue * math.pi * 0.5;
+        double rx1 = sunCenter.dx + math.cos(angle) * 22;
+        double ry1 = sunCenter.dy + math.sin(angle) * 22;
+        double rx2 = sunCenter.dx + math.cos(angle) * 30;
+        double ry2 = sunCenter.dy + math.sin(angle) * 30;
+        canvas.drawLine(Offset(rx1, ry1), Offset(rx2, ry2), rayPaint);
+      }
+    }
+
+    // 2. Ocean Waves (Layer 1 - Deep Water extending across full circle)
+    final waveWave = isRunning ? math.sin(animationValue * math.pi * 2) * 6 : 0.0;
+    
+    final oceanBackPath = Path()
+      ..moveTo(center.dx - 120, center.dy + 15)
+      ..quadraticBezierTo(center.dx - 60, center.dy + 15 + waveWave, center.dx, center.dy + 15)
+      ..quadraticBezierTo(center.dx + 60, center.dy + 15 - waveWave, center.dx + 120, center.dy + 15)
+      ..lineTo(center.dx + 120, center.dy + 120)
+      ..lineTo(center.dx - 120, center.dy + 120)
+      ..close();
+
+    final oceanBackPaint = Paint()
+      ..color = color.withOpacity(0.6)
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(oceanBackPath, oceanBackPaint);
+
+    // 3. Sailboat on the waves
+    final boatX = center.dx + math.sin(animationValue * math.pi) * 12;
+    final boatY = center.dy + 12 + waveWave * 0.5;
+
+    // Boat Hull
+    final hullPath = Path()
+      ..moveTo(boatX - 18, boatY)
+      ..lineTo(boatX + 18, boatY)
+      ..lineTo(boatX + 12, boatY + 10)
+      ..lineTo(boatX - 12, boatY + 10)
+      ..close();
+    canvas.drawPath(hullPath, Paint()..color = Colors.brown.shade700);
+
+    // Sail
+    final sailPath = Path()
+      ..moveTo(boatX, boatY - 25)
+      ..lineTo(boatX + 14, boatY - 4)
+      ..lineTo(boatX, boatY - 4)
+      ..close();
+    canvas.drawPath(sailPath, Paint()..color = Colors.white.withOpacity(0.9));
+
+    // Mast
+    canvas.drawLine(
+      Offset(boatX, boatY - 26),
+      Offset(boatX, boatY),
+      Paint()..color = Colors.brown.shade900..strokeWidth = 2,
+    );
+
+    // 4. Ocean Waves (Layer 2 - Foreground Waves extending across full circle)
+    final oceanFrontPath = Path()
+      ..moveTo(center.dx - 120, center.dy + 25)
+      ..quadraticBezierTo(center.dx - 60, center.dy + 25 - waveWave, center.dx, center.dy + 25)
+      ..quadraticBezierTo(center.dx + 60, center.dy + 25 + waveWave, center.dx + 120, center.dy + 25)
+      ..lineTo(center.dx + 120, center.dy + 120)
+      ..lineTo(center.dx - 120, center.dy + 120)
+      ..close();
+
+    final oceanFrontPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(oceanFrontPath, oceanFrontPaint);
+
+    canvas.restore();
   }
 
   void _paintPotion(Canvas canvas, Size size, Offset center) {

@@ -3,6 +3,8 @@ enum PomodoroTheme {
   fire,
   space,
   potion,
+  hourglass,
+  ocean,
 }
 
 enum PomodoroStatus {
