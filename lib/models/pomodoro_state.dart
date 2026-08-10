@@ -24,6 +24,10 @@ class PomodoroState {
   final PomodoroStatus status;
   final PomodoroTheme selectedTheme;
   final PomodoroMode? _selectedMode;
+  final int customFocusMinutes;
+  final int customShortBreakMinutes;
+  final int customLongBreakMinutes;
+  final int completedPomodoros;
 
   PomodoroMode get selectedMode => _selectedMode ?? PomodoroMode.focus;
 
@@ -33,6 +37,10 @@ class PomodoroState {
     this.status = PomodoroStatus.idle,
     this.selectedTheme = PomodoroTheme.tree,
     PomodoroMode? selectedMode,
+    this.customFocusMinutes = 25,
+    this.customShortBreakMinutes = 5,
+    this.customLongBreakMinutes = 15,
+    this.completedPomodoros = 0,
   }) : _selectedMode = selectedMode ?? PomodoroMode.focus;
 
   PomodoroState copyWith({
@@ -41,6 +49,10 @@ class PomodoroState {
     PomodoroStatus? status,
     PomodoroTheme? selectedTheme,
     PomodoroMode? selectedMode,
+    int? customFocusMinutes,
+    int? customShortBreakMinutes,
+    int? customLongBreakMinutes,
+    int? completedPomodoros,
   }) {
     return PomodoroState(
       focusMinutes: focusMinutes ?? this.focusMinutes,
@@ -48,12 +60,16 @@ class PomodoroState {
       status: status ?? this.status,
       selectedTheme: selectedTheme ?? this.selectedTheme,
       selectedMode: selectedMode ?? _selectedMode,
+      customFocusMinutes: customFocusMinutes ?? this.customFocusMinutes,
+      customShortBreakMinutes: customShortBreakMinutes ?? this.customShortBreakMinutes,
+      customLongBreakMinutes: customLongBreakMinutes ?? this.customLongBreakMinutes,
+      completedPomodoros: completedPomodoros ?? this.completedPomodoros,
     );
   }
 
   double get progress {
     final totalSeconds = focusMinutes * 60;
     if (totalSeconds == 0) return 0;
-    return 1 - (remainingSeconds / totalSeconds);
+    return (1 - (remainingSeconds / totalSeconds)).clamp(0.0, 1.0);
   }
 }

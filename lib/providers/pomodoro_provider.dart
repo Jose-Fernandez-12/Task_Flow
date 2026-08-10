@@ -13,15 +13,39 @@ class PomodoroProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void updateCustomDurations({int? focus, int? shortBreak, int? longBreak}) {
+    final newFocus = focus ?? _state.customFocusMinutes;
+    final newShort = shortBreak ?? _state.customShortBreakMinutes;
+    final newLong = longBreak ?? _state.customLongBreakMinutes;
+
+    int currentMins = newFocus;
+    if (_state.selectedMode == PomodoroMode.shortBreak) {
+      currentMins = newShort;
+    } else if (_state.selectedMode == PomodoroMode.longBreak) {
+      currentMins = newLong;
+    }
+
+    _timer?.cancel();
+    _state = _state.copyWith(
+      customFocusMinutes: newFocus,
+      customShortBreakMinutes: newShort,
+      customLongBreakMinutes: newLong,
+      focusMinutes: currentMins,
+      remainingSeconds: currentMins * 60,
+      status: PomodoroStatus.idle,
+    );
+    notifyListeners();
+  }
+
   void setMode(PomodoroMode mode) {
     if (_state.status == PomodoroStatus.running) {
       _timer?.cancel();
     }
-    int minutes = 25;
+    int minutes = _state.customFocusMinutes;
     if (mode == PomodoroMode.shortBreak) {
-      minutes = 5;
+      minutes = _state.customShortBreakMinutes;
     } else if (mode == PomodoroMode.longBreak) {
-      minutes = 15;
+      minutes = _state.customLongBreakMinutes;
     }
 
     _state = _state.copyWith(
@@ -44,10 +68,16 @@ class PomodoroProvider with ChangeNotifier {
         _state = _state.copyWith(remainingSeconds: _state.remainingSeconds - 1);
         notifyListeners();
       } else {
-        stopTimer();
-        _state = _state.copyWith(status: PomodoroStatus.finished);
+        _timer?.cancel();
+        int nextCompleted = _state.completedPomodoros;
+        if (_state.selectedMode == PomodoroMode.focus) {
+          nextCompleted++;
+        }
+        _state = _state.copyWith(
+          status: PomodoroStatus.finished,
+          completedPomodoros: nextCompleted,
+        );
         notifyListeners();
-        // Here we could trigger a notification/sound
       }
     });
   }
@@ -60,19 +90,17 @@ class PomodoroProvider with ChangeNotifier {
 
   void stopTimer() {
     _timer?.cancel();
-    int minutes = 25;
+    int minutes = _state.customFocusMinutes;
     if (_state.selectedMode == PomodoroMode.shortBreak) {
-      minutes = 5;
+      minutes = _state.customShortBreakMinutes;
     } else if (_state.selectedMode == PomodoroMode.longBreak) {
-      minutes = 15;
+      minutes = _state.customLongBreakMinutes;
     }
 
-    _state = PomodoroState(
+    _state = _state.copyWith(
       focusMinutes: minutes,
       remainingSeconds: minutes * 60,
       status: PomodoroStatus.idle,
-      selectedTheme: _state.selectedTheme,
-      selectedMode: _state.selectedMode,
     );
     notifyListeners();
   }
