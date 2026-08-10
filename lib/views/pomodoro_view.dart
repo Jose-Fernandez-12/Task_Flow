@@ -97,6 +97,8 @@ class PomodoroView extends StatelessWidget {
           final state = provider.state;
           final progress = state.progress;
 
+          final isRunning = state.status == PomodoroStatus.running;
+
           return SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.only(bottom: 120.0),
@@ -105,117 +107,128 @@ class PomodoroView extends StatelessWidget {
                 children: [
                   const SizedBox(height: 12),
 
-                  // Mode Selector Row + Settings Icon
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: colors.surface,
-                              borderRadius: BorderRadius.circular(999),
-                              border: Border.all(color: colors.borderSoft),
-                            ),
-                            child: Row(
-                              children: [
-                                _buildModeTab(
-                                  context,
-                                  provider,
-                                  PomodoroMode.focus,
-                                  'Enfoque (${state.customFocusMinutes}m)',
-                                  colors,
-                                ),
-                                _buildModeTab(
-                                  context,
-                                  provider,
-                                  PomodoroMode.shortBreak,
-                                  'E. Corto (${state.customShortBreakMinutes}m)',
-                                  colors,
-                                ),
-                                _buildModeTab(
-                                  context,
-                                  provider,
-                                  PomodoroMode.longBreak,
-                                  'E. Largo (${state.customLongBreakMinutes}m)',
-                                  colors,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        IconButton(
-                          icon: Icon(Icons.settings_outlined, color: colors.fg2),
-                          onPressed: () => _showSettings(context, provider),
-                          tooltip: 'Personalizar Tiempos',
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Dynamic Rich Animation Canvas Artwork
-                  PomodoroAnimationWidget(
-                    theme: state.selectedTheme,
-                    progress: progress,
-                    isRunning: state.status == PomodoroStatus.running,
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Redesigned Theme Selector (Sleek Segmented Pill Bar)
-                  Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: colors.surface,
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: colors.borderSoft),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: PomodoroTheme.values.map((theme) {
-                        final isSelected = state.selectedTheme == theme;
-                        return Expanded(
-                          child: GestureDetector(
-                            onTap: () => provider.setTheme(theme),
-                            behavior: HitTestBehavior.opaque,
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(vertical: 8),
+                  // Mode Selector Row + Settings Icon (Hidden when running)
+                  if (!isRunning)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
                               decoration: BoxDecoration(
-                                color: isSelected ? colors.surfaceWarm : Colors.transparent,
-                                borderRadius: BorderRadius.circular(12),
-                                border: isSelected ? Border.all(color: colors.accent.withOpacity(0.5)) : null,
+                                color: colors.surface,
+                                borderRadius: BorderRadius.circular(999),
+                                border: Border.all(color: colors.borderSoft),
                               ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
+                              child: Row(
                                 children: [
-                                  Icon(
-                                    _getThemeIcon(theme),
-                                    size: 20,
-                                    color: isSelected ? colors.accent : colors.muted,
+                                  _buildModeTab(
+                                    context,
+                                    provider,
+                                    PomodoroMode.focus,
+                                    'Enfoque (${state.customFocusMinutes}m)',
+                                    colors,
                                   ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    _getThemeName(theme),
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                      color: isSelected ? colors.fg : colors.muted,
-                                    ),
+                                  _buildModeTab(
+                                    context,
+                                    provider,
+                                    PomodoroMode.shortBreak,
+                                    'E. Corto (${state.customShortBreakMinutes}m)',
+                                    colors,
+                                  ),
+                                  _buildModeTab(
+                                    context,
+                                    provider,
+                                    PomodoroMode.longBreak,
+                                    'E. Largo (${state.customLongBreakMinutes}m)',
+                                    colors,
                                   ),
                                 ],
                               ),
                             ),
                           ),
-                        );
-                      }).toList(),
+                          const SizedBox(width: 8),
+                          IconButton(
+                            icon: Icon(Icons.settings_outlined, color: colors.fg2),
+                            onPressed: () => _showSettings(context, provider),
+                            tooltip: 'Personalizar Tiempos',
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  SizedBox(height: isRunning ? 40 : 24),
+
+                  // Dynamic Rich Animation Canvas Artwork (Tappable to Pause when running)
+                  GestureDetector(
+                    onTap: () {
+                      if (isRunning) {
+                        provider.pauseTimer();
+                      } else {
+                        provider.startTimer();
+                      }
+                    },
+                    child: PomodoroAnimationWidget(
+                      theme: state.selectedTheme,
+                      progress: progress,
+                      isRunning: isRunning,
                     ),
                   ),
+
+                  SizedBox(height: isRunning ? 30 : 20),
+
+                  // Theme Selector (Hidden when running)
+                  if (!isRunning)
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 24),
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: colors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: colors.borderSoft),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: PomodoroTheme.values.map((theme) {
+                          final isSelected = state.selectedTheme == theme;
+                          return Expanded(
+                            child: GestureDetector(
+                              onTap: () => provider.setTheme(theme),
+                              behavior: HitTestBehavior.opaque,
+                              child: AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: isSelected ? colors.surfaceWarm : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: isSelected ? Border.all(color: colors.accent.withOpacity(0.5)) : null,
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      _getThemeIcon(theme),
+                                      size: 20,
+                                      color: isSelected ? colors.accent : colors.muted,
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      _getThemeName(theme),
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                        color: isSelected ? colors.fg : colors.muted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
 
                   const SizedBox(height: 24),
 
@@ -276,11 +289,11 @@ class PomodoroView extends StatelessWidget {
 
                   const SizedBox(height: 24),
 
-                  // Controls
+                  // Controls (Main action button; when paused, stop button also shows)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      if (state.status != PomodoroStatus.idle && state.status != PomodoroStatus.finished)
+                      if (state.status == PomodoroStatus.paused)
                         Padding(
                           padding: const EdgeInsets.only(right: 16.0),
                           child: Material(
@@ -296,7 +309,7 @@ class PomodoroView extends StatelessWidget {
                         ),
                       GestureDetector(
                         onTap: () {
-                          if (state.status == PomodoroStatus.running) {
+                          if (isRunning) {
                             provider.pauseTimer();
                           } else {
                             provider.startTimer();
@@ -317,9 +330,7 @@ class PomodoroView extends StatelessWidget {
                             ],
                           ),
                           child: Icon(
-                            state.status == PomodoroStatus.running
-                                ? Icons.pause
-                                : Icons.play_arrow,
+                            isRunning ? Icons.pause : Icons.play_arrow,
                             size: 42,
                             color: colors.accentOn,
                           ),

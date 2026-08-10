@@ -348,66 +348,75 @@ class _ThemePainter extends CustomPainter {
 
   void _paintPotion(Canvas canvas, Size size, Offset center) {
     final glassPaint = Paint()
-      ..color = Colors.white.withOpacity(0.8)
+      ..color = Colors.white.withOpacity(0.85)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 6;
+      ..strokeWidth = 5
+      ..strokeJoin = StrokeJoin.round;
 
-    // Flask shape
+    // Erlenmeyer Flask shape
     final flaskPath = Path()
-      ..moveTo(center.dx - 15, center.dy - 55)
-      ..lineTo(center.dx + 15, center.dy - 55)
-      ..lineTo(center.dx + 15, center.dy - 30)
-      ..lineTo(center.dx + 55, center.dy + 45)
-      ..arcToPoint(
-        Offset(center.dx - 55, center.dy + 45),
-        radius: const Radius.circular(55),
-        clockwise: true,
-      )
-      ..lineTo(center.dx - 15, center.dy - 30)
+      ..moveTo(center.dx - 14, center.dy - 50)
+      ..lineTo(center.dx + 14, center.dy - 50)
+      ..lineTo(center.dx + 14, center.dy - 20)
+      ..lineTo(center.dx + 48, center.dy + 40)
+      ..quadraticBezierTo(center.dx + 52, center.dy + 52, center.dx + 38, center.dy + 52)
+      ..lineTo(center.dx - 38, center.dy + 52)
+      ..quadraticBezierTo(center.dx - 52, center.dy + 52, center.dx - 48, center.dy + 40)
+      ..lineTo(center.dx - 14, center.dy - 20)
       ..close();
 
-    canvas.drawPath(flaskPath, glassPaint);
+    // 1. Draw Liquid Fill inside clip
+    canvas.save();
+    canvas.clipPath(flaskPath);
 
-    // Liquid fill level based on progress
-    final fillLevel = 45 - progress * 80;
+    final fillLevel = 42 - progress * 75; // Fill level moves up as progress increases
+    final waveOffset = isRunning ? math.sin(animationValue * math.pi * 2) * 4 : 0.0;
+
+    final liquidPath = Path()
+      ..moveTo(center.dx - 70, center.dy + fillLevel + waveOffset)
+      ..quadraticBezierTo(
+        center.dx,
+        center.dy + fillLevel - waveOffset,
+        center.dx + 70,
+        center.dy + fillLevel + waveOffset,
+      )
+      ..lineTo(center.dx + 70, center.dy + 100)
+      ..lineTo(center.dx - 70, center.dy + 100)
+      ..close();
 
     final liquidPaint = Paint()
       ..color = color.withOpacity(0.85)
       ..style = PaintingStyle.fill;
-
-    canvas.save();
-    canvas.clipPath(flaskPath);
-
-    final waveOffset = math.sin(animationValue * math.pi * 2) * 5;
-
-    final liquidPath = Path()
-      ..moveTo(center.dx - 60, center.dy + fillLevel + waveOffset)
-      ..quadraticBezierTo(
-        center.dx,
-        center.dy + fillLevel - waveOffset,
-        center.dx + 60,
-        center.dy + fillLevel + waveOffset,
-      )
-      ..lineTo(center.dx + 60, center.dy + 60)
-      ..lineTo(center.dx - 60, center.dy + 60)
-      ..close();
-
     canvas.drawPath(liquidPath, liquidPaint);
 
     // Bubbles rising if running
     if (isRunning) {
-      final bubblePaint = Paint()..color = Colors.white.withOpacity(0.7);
+      final bubblePaint = Paint()..color = Colors.white.withOpacity(0.75);
       for (int i = 0; i < 8; i++) {
         double p = (animationValue + i * 0.125) % 1.0;
-        double bx = center.dx + math.sin(p * math.pi * 2 + i) * 20;
-        double by = (center.dy + 40) - p * (40 + progress * 60);
+        double bx = center.dx + math.sin(p * math.pi * 2 + i) * 18;
+        double by = (center.dy + 45) - p * (50 + progress * 40);
         if (by > center.dy + fillLevel) {
-          canvas.drawCircle(Offset(bx, by), 3 + (i % 3), bubblePaint);
+          canvas.drawCircle(Offset(bx, by), 2.5 + (i % 3), bubblePaint);
         }
       }
     }
 
     canvas.restore();
+
+    // 2. Draw Glass Outline on top for crisp edges
+    canvas.drawPath(flaskPath, glassPaint);
+
+    // Flask Lip Rim
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(center: Offset(center.dx, center.dy - 52), width: 34, height: 6),
+        const Radius.circular(3),
+      ),
+      Paint()
+        ..color = Colors.white.withOpacity(0.85)
+        ..style = PaintingStyle.fill,
+    );
   }
 
   @override

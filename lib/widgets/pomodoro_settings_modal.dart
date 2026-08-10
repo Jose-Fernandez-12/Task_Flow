@@ -76,7 +76,7 @@ class _PomodoroSettingsModalState extends State<PomodoroSettingsModal> {
           _buildDurationPicker(
             label: 'Enfoque Corto',
             value: _shortBreakMinutes,
-            options: [3, 5, 10, 15],
+            options: [1, 3, 5, 10, 15],
             colors: colors,
             onSelected: (val) => setState(() => _shortBreakMinutes = val),
           ),

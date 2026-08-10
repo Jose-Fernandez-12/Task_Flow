@@ -60,7 +60,21 @@ class PomodoroProvider with ChangeNotifier {
   void startTimer() {
     if (_state.status == PomodoroStatus.running) return;
 
-    _state = _state.copyWith(status: PomodoroStatus.running);
+    int currentRemaining = _state.remainingSeconds;
+    if (currentRemaining <= 0 || _state.status == PomodoroStatus.finished) {
+      int minutes = _state.customFocusMinutes;
+      if (_state.selectedMode == PomodoroMode.shortBreak) {
+        minutes = _state.customShortBreakMinutes;
+      } else if (_state.selectedMode == PomodoroMode.longBreak) {
+        minutes = _state.customLongBreakMinutes;
+      }
+      currentRemaining = minutes * 60;
+    }
+
+    _state = _state.copyWith(
+      status: PomodoroStatus.running,
+      remainingSeconds: currentRemaining,
+    );
     notifyListeners();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -69,13 +83,9 @@ class PomodoroProvider with ChangeNotifier {
         notifyListeners();
       } else {
         _timer?.cancel();
-        int nextCompleted = _state.completedPomodoros;
-        if (_state.selectedMode == PomodoroMode.focus) {
-          nextCompleted++;
-        }
         _state = _state.copyWith(
           status: PomodoroStatus.finished,
-          completedPomodoros: nextCompleted,
+          completedPomodoros: _state.completedPomodoros + 1,
         );
         notifyListeners();
       }
