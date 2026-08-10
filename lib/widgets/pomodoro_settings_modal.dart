@@ -62,19 +62,19 @@ class _PomodoroSettingsModalState extends State<PomodoroSettingsModal> {
           ),
           const SizedBox(height: 16),
 
-          // Focus Time Slider/Selector
+          // Focus Time Slider/Selector (Above 30 min)
           _buildDurationPicker(
-            label: 'Tiempo de Enfoque',
+            label: 'Tiempo de Enfoque Principal',
             value: _focusMinutes,
-            options: [15, 25, 30, 45, 60, 90],
+            options: [35, 45, 60, 90, 120],
             colors: colors,
             onSelected: (val) => setState(() => _focusMinutes = val),
           ),
           const SizedBox(height: 20),
 
-          // Short Break
+          // Enfoque Corto
           _buildDurationPicker(
-            label: 'Descanso Corto',
+            label: 'Enfoque Corto',
             value: _shortBreakMinutes,
             options: [3, 5, 10, 15],
             colors: colors,
@@ -82,9 +82,9 @@ class _PomodoroSettingsModalState extends State<PomodoroSettingsModal> {
           ),
           const SizedBox(height: 20),
 
-          // Long Break
+          // Enfoque Largo
           _buildDurationPicker(
-            label: 'Descanso Largo',
+            label: 'Enfoque Largo',
             value: _longBreakMinutes,
             options: [10, 15, 20, 30],
             colors: colors,

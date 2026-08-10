@@ -32,12 +32,12 @@ class PomodoroState {
   PomodoroMode get selectedMode => _selectedMode ?? PomodoroMode.focus;
 
   PomodoroState({
-    this.focusMinutes = 25,
-    this.remainingSeconds = 25 * 60,
+    this.focusMinutes = 45,
+    this.remainingSeconds = 45 * 60,
     this.status = PomodoroStatus.idle,
     this.selectedTheme = PomodoroTheme.tree,
     PomodoroMode? selectedMode,
-    this.customFocusMinutes = 25,
+    this.customFocusMinutes = 45,
     this.customShortBreakMinutes = 5,
     this.customLongBreakMinutes = 15,
     this.completedPomodoros = 0,
