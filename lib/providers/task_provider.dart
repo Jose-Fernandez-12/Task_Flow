@@ -146,6 +146,59 @@ class TaskProvider with ChangeNotifier {
     return count;
   }
 
+  /// Reorders a subset of tasks (e.g. tasks for one day) within the global
+  /// list while keeping other tasks' relative order intact.
+  void reorderTasks(List<Task> newOrder) {
+    if (newOrder.length < 2) return;
+    final ids = newOrder.map((t) => t.id).toSet();
+    int? firstIndex;
+    for (var i = 0; i < _tasks.length; i++) {
+      if (ids.contains(_tasks[i].id)) {
+        firstIndex = i;
+        break;
+      }
+    }
+    if (firstIndex == null) return;
+    _tasks.removeWhere((t) => ids.contains(t.id));
+    _tasks.insertAll(firstIndex, newOrder);
+    _saveTasks();
+  }
+
+  /// Creates a copy of the task and inserts it right after the original.
+  void duplicateTask(String id) {
+    final index = _tasks.indexWhere((t) => t.id == id);
+    if (index == -1) return;
+    final t = _tasks[index];
+    final copy = Task(
+      id: 't${DateTime.now().millisecondsSinceEpoch}',
+      title: t.title,
+      desc: t.desc,
+      date: t.date,
+      priority: t.priority,
+      done: false,
+      type: t.type,
+      time: t.time,
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+    );
+    _tasks.insert(index + 1, copy);
+    _saveTasks();
+    if (copy.type == TaskType.reunion) {
+      NotificationService.scheduleMeetingReminders(copy);
+    }
+  }
+
+  /// Moves a task to a different date.
+  void moveTaskToDay(String id, String date) {
+    final index = _tasks.indexWhere((t) => t.id == id);
+    if (index == -1) return;
+    final task = _tasks[index];
+    task.date = date;
+    _saveTasks();
+    if (task.type == TaskType.reunion) {
+      NotificationService.scheduleMeetingReminders(task);
+    }
+  }
+
   // Helpers to get specific groups of tasks
   List<Task> get recordatorios => _tasks.where((t) => t.type == TaskType.recordatorio).toList();
   List<Task> get recordatoriosPendientes => recordatorios.where((t) => !t.done).toList();

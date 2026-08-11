@@ -15,6 +15,16 @@ class PomodoroProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void setFocusTask(String title) {
+    _state = _state.copyWith(focusTaskTitle: title);
+    notifyListeners();
+  }
+
+  void clearFocusTask() {
+    _state = _state.copyWith(focusTaskTitle: '');
+    notifyListeners();
+  }
+
   void toggleIntervalBreaks(bool value) {
     _state = _state.copyWith(intervalBreaksEnabled: value);
     notifyListeners();

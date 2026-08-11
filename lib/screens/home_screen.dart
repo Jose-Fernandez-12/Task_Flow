@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../providers/task_provider.dart';
+import '../providers/pomodoro_provider.dart';
 import '../theme/app_theme.dart';
 import '../views/daily_view.dart';
 import '../views/weekly_view.dart';
@@ -21,13 +22,11 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _views = const [
-    DailyView(),
-    WeeklyView(),
-    MonthlyView(),
-    PomodoroView(),
-    AlertsView(),
-  ];
+  void _startFocus(String title) {
+    final pomo = Provider.of<PomodoroProvider>(context, listen: false);
+    pomo.setFocusTask(title);
+    setState(() => _currentIndex = 3);
+  }
 
   void _showAddTaskModal(BuildContext context, TaskProvider provider) {
     showModalBottomSheet(
@@ -140,7 +139,13 @@ class _HomeScreenState extends State<HomeScreen> {
                 Expanded(
                   child: IndexedStack(
                     index: _currentIndex,
-                    children: _views,
+                    children: [
+                      DailyView(onStartFocus: _startFocus),
+                      const WeeklyView(),
+                      const MonthlyView(),
+                      const PomodoroView(),
+                      const AlertsView(),
+                    ],
                   ),
                 ),
               ],

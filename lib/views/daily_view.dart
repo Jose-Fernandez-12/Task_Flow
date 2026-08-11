@@ -6,9 +6,13 @@ import '../theme/app_theme.dart';
 import '../widgets/task_card.dart';
 import '../widgets/task_detail_modal.dart';
 import '../widgets/add_task_modal.dart';
+import '../widgets/task_context_menu.dart';
+import '../widgets/move_task_modal.dart';
 
 class DailyView extends StatelessWidget {
-  const DailyView({Key? key}) : super(key: key);
+  final void Function(String title)? onStartFocus;
+
+  const DailyView({Key? key, this.onStartFocus}) : super(key: key);
 
   void _showDetailModal(BuildContext context, Task task, TaskProvider provider) {
     showModalBottomSheet(
@@ -55,16 +59,55 @@ class DailyView extends StatelessWidget {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Tarea eliminada'),
-
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 2),
         action: SnackBarAction(
           label: 'Deshacer',
-
           onPressed: () {
             provider.undoDelete();
           },
         ),
+      ),
+    );
+  }
+
+  void _showContextMenu(BuildContext context, Task task, TaskProvider provider) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => TaskContextMenu(
+        taskTitle: task.title,
+        onEdit: () {
+          _showEditModal(context, task, provider);
+        },
+        onDuplicate: () {
+          provider.duplicateTask(task.id);
+        },
+        onMove: () {
+          _showMoveModal(context, task, provider);
+        },
+        onFocus: () {
+          onStartFocus?.call(task.title);
+        },
+        onDelete: () {
+          provider.deleteTask(task.id);
+          _showDeleteSnackbar(context, provider);
+        },
+      ),
+    );
+  }
+
+  void _showMoveModal(BuildContext context, Task task, TaskProvider provider) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => MoveTaskModal(
+        initialDate: task.date,
+        onSelect: (date) {
+          provider.moveTaskToDay(task.id, date);
+        },
       ),
     );
   }
@@ -138,17 +181,59 @@ class DailyView extends StatelessWidget {
       children: [
         if (overdue.isNotEmpty) ...[
           _buildSectionHeader('Atrasadas', overdue.length, colors, titleColor: colors.danger),
-          ...overdue.map((t) => _buildCard(context, t, provider)),
+          _buildReorderableSection(context, overdue, provider),
         ],
         if (pendingToday.isNotEmpty) ...[
           _buildSectionHeader('Pendientes hoy', pendingToday.length, colors),
-          ...pendingToday.map((t) => _buildCard(context, t, provider)),
+          _buildReorderableSection(context, pendingToday, provider),
         ],
         if (completed.isNotEmpty) ...[
           _buildSectionHeader('Completadas', completed.length, colors),
           ...completed.take(5).map((t) => _buildCard(context, t, provider)),
         ],
       ],
+    );
+  }
+
+  Widget _buildReorderableSection(
+    BuildContext context,
+    List<Task> tasks,
+    TaskProvider provider,
+  ) {
+    return ReorderableListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      buildDefaultDragHandles: false,
+      itemCount: tasks.length,
+      onReorder: (oldIndex, newIndex) {
+        if (newIndex > oldIndex) newIndex -= 1;
+        final reordered = List<Task>.from(tasks);
+        final moved = reordered.removeAt(oldIndex);
+        reordered.insert(newIndex, moved);
+        provider.reorderTasks(reordered);
+      },
+      itemBuilder: (context, index) {
+        final task = tasks[index];
+        return TaskCard(
+          key: ValueKey('reorder_${task.id}'),
+          task: task,
+          onTap: () => _showDetailModal(context, task, provider),
+          onLongPress: () => _showContextMenu(context, task, provider),
+          onToggleDone: () => provider.toggleDone(task.id),
+          onDelete: () {
+            provider.deleteTask(task.id);
+            _showDeleteSnackbar(context, provider);
+          },
+          onPostpone: () => provider.postponeTask(task.id),
+          dragHandle: ReorderableDragStartListener(
+            index: index,
+            child: const Padding(
+              padding: EdgeInsets.all(8),
+              child: Icon(Icons.drag_indicator, size: 20),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -191,6 +276,7 @@ class DailyView extends StatelessWidget {
     return TaskCard(
       task: task,
       onTap: () => _showDetailModal(context, task, provider),
+      onLongPress: () => _showContextMenu(context, task, provider),
       onToggleDone: () => provider.toggleDone(task.id),
       onDelete: () {
         provider.deleteTask(task.id);

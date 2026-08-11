@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../models/task.dart';
 import '../theme/app_theme.dart';
 
@@ -9,6 +8,8 @@ class TaskCard extends StatelessWidget {
   final VoidCallback onToggleDone;
   final VoidCallback onDelete;
   final VoidCallback? onPostpone;
+  final VoidCallback? onLongPress;
+  final Widget? dragHandle;
 
   const TaskCard({
     Key? key,
@@ -17,6 +18,8 @@ class TaskCard extends StatelessWidget {
     required this.onToggleDone,
     required this.onDelete,
     this.onPostpone,
+    this.onLongPress,
+    this.dragHandle,
   }) : super(key: key);
 
   String _formatDate(String dateStr) {
@@ -80,6 +83,7 @@ class TaskCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
+        onLongPress: onLongPress,
         borderRadius: BorderRadius.circular(16),
         child: Opacity(
           opacity: isCompleted ? 0.55 : 1.0,
@@ -184,6 +188,8 @@ class TaskCard extends StatelessWidget {
                           ],
                         ),
                       ),
+                      // Drag handle (reorder)
+                      if (dragHandle != null) dragHandle!,
                       // Delete button
                       IconButton(
                         onPressed: onDelete,

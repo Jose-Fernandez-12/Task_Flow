@@ -47,6 +47,9 @@ class PomodoroState {
   final bool isCurrentlyInIntervalBreak;
   final int intervalBreakRemainingSeconds;
 
+  // Current focus goal (task title) launched from a task context menu
+  final String focusTaskTitle;
+
   PomodoroMode get selectedMode => _selectedMode ?? PomodoroMode.focus;
 
   PomodoroState({
@@ -63,6 +66,7 @@ class PomodoroState {
     this.intervalBreakDurationMinutes = 5,
     this.isCurrentlyInIntervalBreak = false,
     this.intervalBreakRemainingSeconds = 0,
+    this.focusTaskTitle = '',
   }) : _selectedMode = selectedMode ?? PomodoroMode.focus;
 
   PomodoroState copyWith({
@@ -79,6 +83,7 @@ class PomodoroState {
     int? intervalBreakDurationMinutes,
     bool? isCurrentlyInIntervalBreak,
     int? intervalBreakRemainingSeconds,
+    String? focusTaskTitle,
   }) {
     return PomodoroState(
       focusMinutes: focusMinutes ?? this.focusMinutes,
@@ -94,6 +99,7 @@ class PomodoroState {
       intervalBreakDurationMinutes: intervalBreakDurationMinutes ?? this.intervalBreakDurationMinutes,
       isCurrentlyInIntervalBreak: isCurrentlyInIntervalBreak ?? this.isCurrentlyInIntervalBreak,
       intervalBreakRemainingSeconds: intervalBreakRemainingSeconds ?? this.intervalBreakRemainingSeconds,
+      focusTaskTitle: focusTaskTitle ?? this.focusTaskTitle,
     );
   }
 

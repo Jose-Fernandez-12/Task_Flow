@@ -284,6 +284,50 @@ class PomodoroView extends StatelessWidget {
 
                   const SizedBox(height: 24),
 
+                  // Focus goal chip (launched from a task context menu)
+                  if (state.focusTaskTitle.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 24),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: colors.surface,
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: colors.borderSoft),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.timer_outlined, size: 15, color: colors.accent),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                state.focusTaskTitle,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: colors.fg2,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () => provider.clearFocusTask(),
+                              behavior: HitTestBehavior.opaque,
+                              child: Padding(
+                                padding: const EdgeInsets.all(2),
+                                child: Icon(Icons.close, size: 14, color: colors.muted),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
                   // Big Digital Timer Text
                   Column(
                     children: [

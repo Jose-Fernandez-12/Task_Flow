@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../models/task.dart';
 import '../theme/app_theme.dart';
 import 'priority_chip.dart';
+import 'calendar_picker.dart';
 
 class AddTaskModal extends StatefulWidget {
   final Task? taskToEdit;
@@ -27,7 +28,6 @@ class _AddTaskModalState extends State<AddTaskModal> {
   String? _selectedTime;
   
   bool _showingCalendar = false;
-  late DateTime _calMonth;
 
   @override
   void initState() {
@@ -37,28 +37,11 @@ class _AddTaskModalState extends State<AddTaskModal> {
     _selectedPriority = widget.taskToEdit?.priority ?? TaskPriority.media;
     _selectedType = widget.taskToEdit?.type ?? TaskType.tarea;
     _selectedTime = widget.taskToEdit?.time;
-    
+
     if (widget.taskToEdit != null) {
       _selectedDate = widget.taskToEdit!.date;
     } else {
       _selectedDate = "";
-    }
-    
-    _initCalendarMonth();
-  }
-
-  void _initCalendarMonth() {
-    if (_selectedDate.isNotEmpty) {
-      try {
-        _calMonth = DateTime.parse(_selectedDate);
-        _calMonth = DateTime(_calMonth.year, _calMonth.month, 1);
-      } catch (e) {
-        final now = DateTime.now();
-        _calMonth = DateTime(now.year, now.month, 1);
-      }
-    } else {
-      final now = DateTime.now();
-      _calMonth = DateTime(now.year, now.month, 1);
     }
   }
 
@@ -89,121 +72,6 @@ class _AddTaskModalState extends State<AddTaskModal> {
     } catch (_) {
       return _selectedDate;
     }
-  }
-
-  Widget _buildCalendarPicker(AppColors colors) {
-    if (!_showingCalendar) return const SizedBox.shrink();
-
-    final daysInMonth = DateUtils.getDaysInMonth(_calMonth.year, _calMonth.month);
-    final firstDayOffset = _calMonth.weekday - 1; // 0 = Lunes, 6 = Domingo
-    
-    final dayNames = ['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sa', 'Do'];
-    final now = DateTime.now();
-    final todayStr = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
-
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        border: Border.all(color: colors.borderSoft),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.chevron_left),
-                onPressed: () {
-                  setState(() {
-                    _calMonth = DateTime(_calMonth.year, _calMonth.month - 1, 1);
-                  });
-                },
-              ),
-              Text(
-                DateFormat('MMMM yyyy', 'es_ES').format(_calMonth),
-                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: colors.fg),
-              ),
-              IconButton(
-                icon: const Icon(Icons.chevron_right),
-                onPressed: () {
-                  setState(() {
-                    _calMonth = DateTime(_calMonth.year, _calMonth.month + 1, 1);
-                  });
-                },
-              ),
-            ],
-          ),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              childAspectRatio: 1.2,
-              crossAxisSpacing: 2,
-              mainAxisSpacing: 2,
-            ),
-            itemCount: 7 + firstDayOffset + daysInMonth,
-            itemBuilder: (context, index) {
-              if (index < 7) {
-                return Center(
-                  child: Text(
-                    dayNames[index],
-                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: colors.muted),
-                  ),
-                );
-              }
-              final dayIndex = index - 7 - firstDayOffset;
-              if (dayIndex < 0) return const SizedBox.shrink();
-
-              final day = dayIndex + 1;
-              final dateStr = "${_calMonth.year}-${_calMonth.month.toString().padLeft(2, '0')}-${day.toString().padLeft(2, '0')}";
-              final isSelected = dateStr == _selectedDate;
-              final isToday = dateStr == todayStr;
-
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _selectedDate = dateStr;
-                    _showingCalendar = false;
-                  });
-                },
-                child: Container(
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: isSelected ? colors.accent : Colors.transparent,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    day.toString(),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isSelected ? colors.accentOn : (isToday ? colors.accent : colors.fg2),
-                      fontWeight: isSelected || isToday ? FontWeight.w700 : FontWeight.normal,
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _selectedDate = '';
-                _showingCalendar = false;
-              });
-            },
-            child: Text(
-              'Borrar fecha',
-              style: TextStyle(fontSize: 12, color: colors.muted),
-            ),
-          )
-        ],
-      ),
-    );
   }
 
   @override
@@ -282,7 +150,6 @@ class _AddTaskModalState extends State<AddTaskModal> {
                           FocusScope.of(context).unfocus();
                           setState(() {
                             _showingCalendar = !_showingCalendar;
-                            if (_showingCalendar) _initCalendarMonth();
                           });
                         },
                         child: Container(
@@ -380,7 +247,33 @@ class _AddTaskModalState extends State<AddTaskModal> {
                 ),
               ],
             ),
-            _buildCalendarPicker(colors),
+            if (_showingCalendar) ...[
+              CalendarPicker(
+                selectedDate: _selectedDate,
+                onSelect: (date) {
+                  setState(() {
+                    _selectedDate = date;
+                    _showingCalendar = false;
+                  });
+                },
+              ),
+              const SizedBox(height: 4),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () {
+                    setState(() {
+                      _selectedDate = '';
+                      _showingCalendar = false;
+                    });
+                  },
+                  child: Text(
+                    'Borrar fecha',
+                    style: TextStyle(fontSize: 12, color: colors.muted),
+                  ),
+                ),
+              ),
+            ],
             const SizedBox(height: 24),
             Row(
               children: [
