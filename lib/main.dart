@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'providers/task_provider.dart';
+import 'providers/pomodoro_provider.dart';
 import 'theme/app_theme.dart';
 import 'screens/home_screen.dart';
 import 'services/notification_service.dart';
@@ -16,8 +17,11 @@ void main() async {
   await NotificationService.scheduleDailyReminders();
   
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => TaskProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => TaskProvider()),
+        ChangeNotifierProvider(create: (_) => PomodoroProvider()),
+      ],
       child: const TaskFlowApp(),
     ),
   );

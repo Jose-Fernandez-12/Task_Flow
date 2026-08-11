@@ -184,4 +184,28 @@ class NotificationService {
       debugPrint('Error scheduling meeting reminder: $e');
     }
   }
+
+  static Future<void> showPomodoroAlert(String title, String body) async {
+    const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
+      'pomodoro_alerts_channel',
+      'Alertas Pomodoro',
+      channelDescription: 'Alertas cuando inician o terminan los descansos',
+      importance: Importance.max,
+      priority: Priority.high,
+      playSound: true,
+      enableVibration: true,
+    );
+
+    const NotificationDetails notificationDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: DarwinNotificationDetails(),
+    );
+
+    await _notificationsPlugin.show(
+      200, 
+      title,
+      body,
+      notificationDetails,
+    );
+  }
 }
