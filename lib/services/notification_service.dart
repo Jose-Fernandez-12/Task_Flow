@@ -87,17 +87,21 @@ class NotificationService {
     // Convert local DateTime to UTC tz.TZDateTime
     final scheduledDate = tz.TZDateTime.from(targetLocal, tz.UTC);
 
-    await _notificationsPlugin.zonedSchedule(
-      id,
-      title,
-      body,
-      scheduledDate,
-      notificationDetails,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time, // Repeats daily
-    );
+    try {
+      await _notificationsPlugin.zonedSchedule(
+        id,
+        title,
+        body,
+        scheduledDate,
+        notificationDetails,
+        androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        matchDateTimeComponents: DateTimeComponents.time, // Repeats daily
+      );
+    } catch (e) {
+      debugPrint('Error in _scheduleDailyNotification: $e');
+    }
   }
 
   // Schedule both morning (5:00 AM) and midday (12:00 PM) reminders
@@ -163,7 +167,7 @@ class NotificationService {
           meeting.title,
           tz.TZDateTime.from(time30, tz.UTC),
           notificationDetails,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         );
       }
@@ -176,7 +180,7 @@ class NotificationService {
           meeting.title,
           tz.TZDateTime.from(time10, tz.UTC),
           notificationDetails,
-          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
           uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         );
       }

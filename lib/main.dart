@@ -11,11 +11,6 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('es_ES', null);
   
-  // Initialize Local Notifications
-  await NotificationService.init();
-  await NotificationService.requestPermissions();
-  await NotificationService.scheduleDailyReminders();
-  
   runApp(
     MultiProvider(
       providers: [
@@ -25,6 +20,19 @@ void main() async {
       child: const TaskFlowApp(),
     ),
   );
+
+  // Initialize Local Notifications safely in background without blocking UI
+  _initNotifications();
+}
+
+Future<void> _initNotifications() async {
+  try {
+    await NotificationService.init();
+    await NotificationService.requestPermissions();
+    await NotificationService.scheduleDailyReminders();
+  } catch (e) {
+    debugPrint('Error initializing notifications: $e');
+  }
 }
 
 class TaskFlowApp extends StatelessWidget {
