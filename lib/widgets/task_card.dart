@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/task.dart';
 import '../theme/app_theme.dart';
+import 'radial_menu.dart';
 
 class TaskCard extends StatelessWidget {
   final Task task;
@@ -9,6 +10,8 @@ class TaskCard extends StatelessWidget {
   final VoidCallback onToggleDone;
   final VoidCallback onDelete;
   final VoidCallback? onPostpone;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDuplicate;
 
   const TaskCard({
     Key? key,
@@ -17,6 +20,8 @@ class TaskCard extends StatelessWidget {
     required this.onToggleDone,
     required this.onDelete,
     this.onPostpone,
+    this.onEdit,
+    this.onDuplicate,
   }) : super(key: key);
 
   String _formatDate(String dateStr) {
@@ -52,10 +57,20 @@ class TaskCard extends StatelessWidget {
 
     final isCompleted = task.done;
 
+    Widget cardContent = _buildCardContent(priorityColor, colors, isCompleted);
+
+    // Wrap with long press for radial menu (only for non-completed tasks)
+    if (!isCompleted && (onEdit != null || onDuplicate != null)) {
+      cardContent = GestureDetector(
+        onLongPress: () => _showRadialMenu(context),
+        child: cardContent,
+      );
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8.0),
       child: isCompleted
-          ? _buildCardContent(priorityColor, colors, isCompleted)
+          ? cardContent
           : Dismissible(
               key: Key('dismiss_${task.id}'),
               background: _buildSwipeBackground(colors.success, Icons.check, 'Completar', Alignment.centerLeft),
@@ -70,8 +85,28 @@ class TaskCard extends StatelessWidget {
                 }
                 return false;
               },
-              child: _buildCardContent(priorityColor, colors, isCompleted),
+              child: cardContent,
             ),
+    );
+  }
+
+  void _showRadialMenu(BuildContext context) {
+    final RenderBox renderBox = context.findRenderObject() as RenderBox;
+    final position = renderBox.localToGlobal(Offset.zero);
+    final center = Offset(position.dx + renderBox.size.width / 2, position.dy + renderBox.size.height / 2);
+
+    final items = <RadialMenuItem>[
+      RadialMenuItem.edit(onEdit!),
+      RadialMenuItem.duplicate(onDuplicate!),
+      RadialMenuItem.postpone(onPostpone!),
+      RadialMenuItem.complete(onToggleDone),
+      RadialMenuItem.delete(onDelete),
+    ];
+
+    RadialMenu.show(
+      context: context,
+      items: items,
+      globalPosition: center,
     );
   }
 

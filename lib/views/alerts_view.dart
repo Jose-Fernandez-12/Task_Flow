@@ -5,6 +5,7 @@ import '../providers/task_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/task_detail_modal.dart';
 import '../widgets/add_task_modal.dart';
+import '../widgets/task_card.dart';
 
 class AlertsView extends StatelessWidget {
   const AlertsView({Key? key}) : super(key: key);
@@ -59,6 +60,17 @@ class AlertsView extends StatelessWidget {
           onPressed: () => provider.undoDelete(),
         ),
       ),
+    );
+  }
+
+  void _duplicateTask(Task task, TaskProvider provider) {
+    provider.addOrUpdateTask(
+      title: task.title,
+      desc: task.desc,
+      date: task.date,
+      priority: task.priority,
+      type: task.type,
+      time: task.time,
     );
   }
 
@@ -183,131 +195,16 @@ class AlertsView extends StatelessWidget {
   }
 
   Widget _buildAlertCard(BuildContext context, Task t, TaskProvider provider, AppColors colors) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8.0),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _showDetailModal(context, t, provider),
-          borderRadius: BorderRadius.circular(16),
-          child: Opacity(
-            opacity: t.done ? 0.6 : 1.0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-              decoration: BoxDecoration(
-                color: colors.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: colors.borderSoft),
-              ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    width: 38,
-                    height: 38,
-                    margin: const EdgeInsets.only(right: 14),
-                    decoration: BoxDecoration(
-                      color: t.done ? colors.accent : colors.accent.withOpacity(0.08),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Icon(t.done ? Icons.check : Icons.notifications, size: 20, color: t.done ? colors.accentOn : colors.accent),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          t.title,
-                          style: TextStyle(
-                            fontSize: 14, 
-                            fontWeight: FontWeight.w500, 
-                            color: colors.fg, 
-                            height: 1.3,
-                            decoration: t.done ? TextDecoration.lineThrough : null,
-                          ),
-                        ),
-                        if (t.desc.isNotEmpty) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            t.desc,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(fontSize: 13, color: colors.muted, height: 1.4),
-                          ),
-                        ],
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 4,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.black.withOpacity(0.04),
-                                borderRadius: BorderRadius.circular(9999),
-                              ),
-                              child: Text(
-                                'Creado ${_timeAgo(t.createdAt)}',
-                                style: TextStyle(fontSize: 11, color: colors.muted, fontFamily: 'Geist Mono'),
-                              ),
-                            ),
-                            if (!t.done)
-                              GestureDetector(
-                                onTap: () {
-                                  provider.toggleDone(t.id);
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: colors.accent.withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(9999),
-                                    border: Border.all(color: colors.accent.withOpacity(0.2)),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.radio_button_unchecked,
-                                        size: 14,
-                                        color: colors.accent,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Marcar hecho',
-                                        style: TextStyle(
-                                          fontSize: 11,
-                                          color: colors.accent,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                          ],
-                        )
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () {
-                      provider.deleteTask(t.id);
-                      _showDeleteSnackbar(context, provider);
-                    },
-                    icon: Icon(t.done ? Icons.delete_outline : Icons.close),
-                    color: colors.muted,
-                    iconSize: 20,
-                    constraints: const BoxConstraints(),
-                    padding: const EdgeInsets.all(4),
-                    splashRadius: 20,
-                  )
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+    return TaskCard(
+      task: t,
+      onTap: () => _showDetailModal(context, t, provider),
+      onToggleDone: () => provider.toggleDone(t.id),
+      onDelete: () {
+        provider.deleteTask(t.id);
+        _showDeleteSnackbar(context, provider);
+      },
+      onEdit: () => _showEditModal(context, t, provider),
+      onDuplicate: () => _duplicateTask(t, provider),
     );
   }
 }
