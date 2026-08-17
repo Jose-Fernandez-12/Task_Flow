@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../models/task.dart';
+import '../providers/task_provider.dart';
+import '../providers/pomodoro_provider.dart';
 import '../theme/app_theme.dart';
 import 'radial_menu.dart';
 
@@ -12,6 +15,7 @@ class TaskCard extends StatelessWidget {
   final VoidCallback? onPostpone;
   final VoidCallback? onEdit;
   final VoidCallback? onDuplicate;
+  final VoidCallback? onFocus;
 
   const TaskCard({
     Key? key,
@@ -22,6 +26,7 @@ class TaskCard extends StatelessWidget {
     this.onPostpone,
     this.onEdit,
     this.onDuplicate,
+    this.onFocus,
   }) : super(key: key);
 
   String _formatDate(String dateStr) {
@@ -60,9 +65,18 @@ class TaskCard extends StatelessWidget {
     Widget cardContent = _buildCardContent(priorityColor, colors, isCompleted);
 
     // Wrap with long press for radial menu (only for non-completed tasks)
-    if (!isCompleted && (onEdit != null || onDuplicate != null)) {
+    if (!isCompleted) {
       cardContent = GestureDetector(
-        onLongPress: () => _showRadialMenu(context),
+        onLongPressStart: (details) {
+          HapticFeedback.mediumImpact();
+          _showRadialMenu(context, details.globalPosition);
+        },
+        onLongPressMoveUpdate: (details) {
+          RadialMenu.updateDrag(details.globalPosition);
+        },
+        onLongPressEnd: (details) {
+          RadialMenu.endDrag(details.globalPosition);
+        },
         child: cardContent,
       );
     }
@@ -90,23 +104,27 @@ class TaskCard extends StatelessWidget {
     );
   }
 
-  void _showRadialMenu(BuildContext context) {
-    final RenderBox renderBox = context.findRenderObject() as RenderBox;
-    final position = renderBox.localToGlobal(Offset.zero);
-    final center = Offset(position.dx + renderBox.size.width / 2, position.dy + renderBox.size.height / 2);
+  void _showRadialMenu(BuildContext context, Offset touchPosition) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+
+    final handleFocus = onFocus ?? () {
+      Provider.of<PomodoroProvider>(context, listen: false).setActiveTask(task);
+      Provider.of<TaskProvider>(context, listen: false).setTabIndex(3);
+    };
 
     final items = <RadialMenuItem>[
-      RadialMenuItem.edit(onEdit!),
-      RadialMenuItem.duplicate(onDuplicate!),
-      RadialMenuItem.postpone(onPostpone!),
-      RadialMenuItem.complete(onToggleDone),
-      RadialMenuItem.delete(onDelete),
+      RadialMenuItem.pomodoro(handleFocus, colors),
+      if (onEdit != null) RadialMenuItem.edit(onEdit!),
+      if (onDuplicate != null) RadialMenuItem.duplicate(onDuplicate!),
+      if (onPostpone != null) RadialMenuItem.postpone(onPostpone!, colors),
+      RadialMenuItem.complete(onToggleDone, colors),
+      RadialMenuItem.delete(onDelete, colors),
     ];
 
     RadialMenu.show(
       context: context,
       items: items,
-      globalPosition: center,
+      globalPosition: touchPosition,
     );
   }
 
