@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 import '../models/task.dart';
+import '../providers/task_provider.dart';
+import '../providers/pomodoro_provider.dart';
 import '../theme/app_theme.dart';
+import 'radial_menu.dart';
 
 class TaskCard extends StatelessWidget {
   final Task task;
@@ -9,6 +13,9 @@ class TaskCard extends StatelessWidget {
   final VoidCallback onToggleDone;
   final VoidCallback onDelete;
   final VoidCallback? onPostpone;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDuplicate;
+  final VoidCallback? onFocus;
 
   const TaskCard({
     Key? key,
@@ -17,6 +24,9 @@ class TaskCard extends StatelessWidget {
     required this.onToggleDone,
     required this.onDelete,
     this.onPostpone,
+    this.onEdit,
+    this.onDuplicate,
+    this.onFocus,
   }) : super(key: key);
 
   String _formatDate(String dateStr) {
@@ -52,10 +62,29 @@ class TaskCard extends StatelessWidget {
 
     final isCompleted = task.done;
 
+    Widget cardContent = _buildCardContent(priorityColor, colors, isCompleted);
+
+    // Wrap with long press for radial menu (only for non-completed tasks)
+    if (!isCompleted) {
+      cardContent = GestureDetector(
+        onLongPressStart: (details) {
+          HapticFeedback.mediumImpact();
+          _showRadialMenu(context, details.globalPosition);
+        },
+        onLongPressMoveUpdate: (details) {
+          RadialMenu.updateDrag(details.globalPosition);
+        },
+        onLongPressEnd: (details) {
+          RadialMenu.endDrag(details.globalPosition);
+        },
+        child: cardContent,
+      );
+    }
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8.0),
       child: isCompleted
-          ? _buildCardContent(priorityColor, colors, isCompleted)
+          ? cardContent
           : Dismissible(
               key: Key('dismiss_${task.id}'),
               background: _buildSwipeBackground(colors.success, Icons.check, 'Completar', Alignment.centerLeft),
@@ -70,8 +99,32 @@ class TaskCard extends StatelessWidget {
                 }
                 return false;
               },
-              child: _buildCardContent(priorityColor, colors, isCompleted),
+              child: cardContent,
             ),
+    );
+  }
+
+  void _showRadialMenu(BuildContext context, Offset touchPosition) {
+    final colors = Theme.of(context).extension<AppColors>()!;
+
+    final handleFocus = onFocus ?? () {
+      Provider.of<PomodoroProvider>(context, listen: false).setActiveTask(task);
+      Provider.of<TaskProvider>(context, listen: false).setTabIndex(3);
+    };
+
+    final items = <RadialMenuItem>[
+      RadialMenuItem.pomodoro(handleFocus, colors),
+      if (onEdit != null) RadialMenuItem.edit(onEdit!),
+      if (onDuplicate != null) RadialMenuItem.duplicate(onDuplicate!),
+      if (onPostpone != null) RadialMenuItem.postpone(onPostpone!, colors),
+      RadialMenuItem.complete(onToggleDone, colors),
+      RadialMenuItem.delete(onDelete, colors),
+    ];
+
+    RadialMenu.show(
+      context: context,
+      items: items,
+      globalPosition: touchPosition,
     );
   }
 

@@ -69,6 +69,17 @@ class DailyView extends StatelessWidget {
     );
   }
 
+  void _duplicateTask(Task task, TaskProvider provider) {
+    provider.addOrUpdateTask(
+      title: task.title,
+      desc: task.desc,
+      date: task.date,
+      priority: task.priority,
+      type: task.type,
+      time: task.time,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
@@ -197,6 +208,8 @@ class DailyView extends StatelessWidget {
         _showDeleteSnackbar(context, provider);
       },
       onPostpone: () => provider.postponeTask(task.id),
+      onEdit: () => _showEditModal(context, task, provider),
+      onDuplicate: () => _duplicateTask(task, provider),
     );
   }
 }

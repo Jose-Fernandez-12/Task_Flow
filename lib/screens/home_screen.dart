@@ -53,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
     final provider = Provider.of<TaskProvider>(context);
+    final currentIndex = provider.currentTabIndex;
     final now = DateTime.now();
 
     return Scaffold(
@@ -75,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Row(
                             children: [
                               Text(
-                                _currentIndex == 3 ? 'Pomodoro ' : 'TaskFlow ',
+                                currentIndex == 3 ? 'Pomodoro ' : 'TaskFlow ',
                                 style: TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w600,
@@ -84,7 +85,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               Text(
-                                _currentIndex == 3 ? 'Focus' : 'Hoy',
+                                currentIndex == 3 ? 'Focus' : 'Hoy',
                                 style: TextStyle(
                                   fontSize: 22,
                                   fontWeight: FontWeight.w600,
@@ -95,7 +96,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            _currentIndex == 3
+                            currentIndex == 3
                                 ? 'Tiempo de concentrarte'
                                 : DateFormat('EEEE, d MMMM', 'es_ES').format(now).capitalize(),
                             style: TextStyle(
@@ -139,7 +140,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 // Content
                 Expanded(
                   child: IndexedStack(
-                    index: _currentIndex,
+                    index: currentIndex,
                     children: _views,
                   ),
                 ),
@@ -154,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // FAB
-                  if (_currentIndex != 3)
+                  if (currentIndex != 3)
                     Align(
                       alignment: Alignment.centerRight,
                       child: Padding(
@@ -193,16 +194,18 @@ class _HomeScreenState extends State<HomeScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildTabItem(0, 'Diario', Icons.today, colors, context),
-                            _buildTabItem(1, 'Semanal', Icons.calendar_view_week, colors, context),
-                            _buildTabItem(2, 'Mensual', Icons.calendar_month, colors, context),
-                            _buildTabItem(3, 'Pomodoro', Icons.timer, colors, context),
+                            _buildTabItem(0, 'Diario', Icons.today, colors, context, provider, currentIndex),
+                            _buildTabItem(1, 'Semanal', Icons.calendar_view_week, colors, context, provider, currentIndex),
+                            _buildTabItem(2, 'Mensual', Icons.calendar_month, colors, context, provider, currentIndex),
+                            _buildTabItem(3, 'Pomodoro', Icons.timer, colors, context, provider, currentIndex),
                             _buildTabItem(
                               4,
                               'Alertas',
                               Icons.notifications,
                               colors,
                               context,
+                              provider,
+                              currentIndex,
                               badgeCount: provider.recordatoriosPendientes.length,
                             ),
                           ],
@@ -239,12 +242,21 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildTabItem(int index, String label, IconData icon, AppColors colors, BuildContext context, {int badgeCount = 0}) {
-    final isActive = _currentIndex == index;
+  Widget _buildTabItem(
+    int index,
+    String label,
+    IconData icon,
+    AppColors colors,
+    BuildContext context,
+    TaskProvider provider,
+    int currentIndex, {
+    int badgeCount = 0,
+  }) {
+    final isActive = currentIndex == index;
     final color = isActive ? colors.accent : colors.muted;
 
     return GestureDetector(
-      onTap: () => setState(() => _currentIndex = index),
+      onTap: () => provider.setTabIndex(index),
       behavior: HitTestBehavior.opaque,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),

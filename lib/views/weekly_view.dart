@@ -66,6 +66,17 @@ class WeeklyView extends StatelessWidget {
     );
   }
 
+  void _duplicateTask(Task task, TaskProvider provider) {
+    provider.addOrUpdateTask(
+      title: task.title,
+      desc: task.desc,
+      date: task.date,
+      priority: task.priority,
+      type: task.type,
+      time: task.time,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<AppColors>()!;
@@ -198,6 +209,8 @@ class WeeklyView extends StatelessWidget {
                       _showDeleteSnackbar(context, provider);
                     },
                     onPostpone: () => provider.postponeTask(t.id),
+                    onEdit: () => _showEditModal(context, t, provider),
+                    onDuplicate: () => _duplicateTask(t, provider),
                   ))
               ],
             ),

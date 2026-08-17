@@ -2,13 +2,26 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/pomodoro_state.dart';
+import '../models/task.dart';
 import '../services/notification_service.dart';
 
 class PomodoroProvider with ChangeNotifier {
   PomodoroState _state = PomodoroState();
   Timer? _timer;
+  Task? _activeTask;
 
   PomodoroState get state => _state;
+  Task? get activeTask => _activeTask;
+
+  void setActiveTask(Task? task) {
+    _activeTask = task;
+    notifyListeners();
+  }
+
+  void clearActiveTask() {
+    _activeTask = null;
+    notifyListeners();
+  }
 
   void setTheme(PomodoroTheme theme) {
     _state = _state.copyWith(selectedTheme: theme);
