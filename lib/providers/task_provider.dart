@@ -8,9 +8,18 @@ class TaskProvider with ChangeNotifier {
   List<Task> _tasks = [];
   bool _isDarkMode = false;
   Task? _lastDeleted;
+  int _currentTabIndex = 0;
 
   List<Task> get tasks => _tasks;
   bool get isDarkMode => _isDarkMode;
+  int get currentTabIndex => _currentTabIndex;
+
+  void setTabIndex(int index) {
+    if (_currentTabIndex != index) {
+      _currentTabIndex = index;
+      notifyListeners();
+    }
+  }
 
   TaskProvider() {
     _loadData();
